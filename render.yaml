@@ -1,5 +1,0 @@
-static_sites:
-  - name: painel-delvind-frontend
-    build_command: npm run build
-    publish_directory: dist
-    redirect_all_requests_to: /index.html
