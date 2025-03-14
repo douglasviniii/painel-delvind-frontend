@@ -18,7 +18,7 @@ import axios from 'axios';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
-  const EndPointAPI = 'http://localhost:3000';
+  const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
   const location = useLocation();
   const navigate = useNavigate();
