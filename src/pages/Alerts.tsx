@@ -17,11 +17,10 @@ const Alerts: React.FC = () => {
     try {
       await axios.delete(`${EndPointAPI}/notifications/delete/${id}`);
       alert("Notificação excluída com sucesso!");
-      location.reload();
     } catch (error) {
-      alert("Ocorreu um erro ao excluir essa notificação!");
-    }
-  }
+      console.error("Ocorreu um erro ao excluir a notificação:",error);
+    } 
+  };
 
   useEffect(()=>{
     async function FindAlerts() {

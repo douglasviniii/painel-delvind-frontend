@@ -41,65 +41,76 @@ interface Team {
   const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
   const user = objectUser;
   
-  //Busca os dados
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const allusers = await axios.get(`${EndPointAPI}/employee/findall`);
-        setUsers(allusers.data);
-
-        const teamscreated = await axios.get(`${EndPointAPI}/team/find`);
-        setTeams(teamscreated.data);
-
-      } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-
-  const handleCreateTeam = async () => {
-    if (!newTeam.name_team.trim() || newTeam.members.length === 0) {
-      alert('Por favor, preencha o nome da equipe e selecione pelo menos um membro');
-      return;
+  const fetchUsersAndTeams = async () => {
+    try {
+      const [allUsersResponse, teamsCreatedResponse] = await Promise.all([
+        axios.get(`${EndPointAPI}/employee/findall`),
+        axios.get(`${EndPointAPI}/team/find`),
+      ]);
+      
+      setUsers(allUsersResponse.data);
+      setTeams(teamsCreatedResponse.data);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
     }
-
-    await axios.post(`${EndPointAPI}/team/create`, newTeam);
-    setNewTeam({
-      name_team: '',
-      description: '',
-      members: [],
-    });
-    setShowCreateModal(false);
-    location.reload();
   };
+  
+  const handleCreateTeam = async () => {
+    try {
+      if (!newTeam.name_team.trim() || newTeam.members.length === 0) {
+        alert('Por favor, preencha o nome da equipe e selecione pelo menos um membro.');
+        return;
+      }
+  
+      await axios.post(`${EndPointAPI}/team/create`, newTeam);
+  
+      setNewTeam({ name_team: '', description: '', members: [] });
+      setShowCreateModal(false);
+  
+      fetchUsersAndTeams();
+    } catch (error) {
+      console.error('Erro ao criar equipe:', error);
+      alert('Ocorreu um erro ao criar a equipe. Tente novamente.');
+    }
+  };
+  
 
   const toggleMember = (userId: string) => {
-    if (newTeam.members.includes(userId)) {
-      setNewTeam({
-        ...newTeam,
-        members: newTeam.members.filter((id) => id !== userId),
-      });
-    } else {
-      setNewTeam({
-        ...newTeam,
-        members: [...newTeam.members, userId],
-      });
-    }
+    setNewTeam((prevTeam) => {
+      const isMember = prevTeam.members.includes(userId);
+      return {
+        ...prevTeam,
+        members: isMember
+          ? prevTeam.members.filter((id) => id !== userId)
+          : [...prevTeam.members, userId],
+      };
+    });
   };
+  
 
   const handledelete = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir essa equipe?')) return;
+  
     try {
-      if (window.confirm('Tem certeza que deseja excluir essa equipe?')) {
       await axios.delete(`${EndPointAPI}/team/delete/${id}`);
-      location.reload();
-    }
+  
+      // Atualiza a lista de equipes sem recarregar a página
+      fetchUsersAndTeams();
     } catch (error) {
-      alert('Ocorreu um erro ao excluir essa equipe!');
+      console.error('Erro ao excluir equipe:', error);
+      alert('Ocorreu um erro ao excluir essa equipe. Tente novamente.');
     }
-  }
+  };
+  
+  useEffect(()=>{
+    fetchUsersAndTeams();
+  },[])
+
+  const filteredTeams = user.role === "admin"
+  ? teams // Admin vê todas as equipes
+  : teams.filter((team) => 
+      team.members.some((member) => member._id === user._id) // Filtra equipes do colaborador
+    );
 
   return (
     <Layout>
@@ -112,9 +123,8 @@ interface Team {
         </button>
         <h1 className="text-2xl font-bold">Gerenciar Equipes</h1>
       </div>
-
-      <div className="mb-6 flex justify-end">
-      {user.role === 'admin' && ( // Mostra o botão apenas se o usuário for admin
+  
+      {user.role === "admin" && (
         <div className="mb-6 flex justify-end">
           <button
             onClick={() => setShowCreateModal(true)}
@@ -125,14 +135,15 @@ interface Team {
           </button>
         </div>
       )}
-      </div>
-
-      {teams.length === 0 ? (
+  
+      {filteredTeams.length === 0 ? (
         <div className="card text-center py-12">
           <Users size={48} className="mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhuma equipe encontrada</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            Nenhuma equipe encontrada
+          </h2>
           <p className="text-gray-600 mb-6">Comece criando sua primeira equipe</p>
-          {user.role === 'admin' && (
+          {user.role === "admin" && (
             <button
               onClick={() => setShowCreateModal(true)}
               className="btn-primary inline-flex items-center"
@@ -144,49 +155,45 @@ interface Team {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {teams.map((team) => (
+          {filteredTeams.map((team) => (
             <div key={team._id} className="card">
-              {user.role === 'admin' && ( // Verifica se o usuário é admin antes de renderizar o botão
-              <div className="flex justify-end mt-2">
-                <Trash
-                  onClick={() => {
-                    handledelete(team._id);
-                  }}
-                  size={18}
-                  className="cursor-pointer"
-                />
-              </div>
-            )}
+              {user.role === "admin" && (
+                <div className="flex justify-end mt-2">
+                  <Trash
+                    onClick={() => handledelete(team._id)}
+                    size={18}
+                    className="cursor-pointer"
+                  />
+                </div>
+              )}
               <h2 className="text-xl font-semibold mb-4">{team.name_team}</h2>
               <p className="text-gray-500 text-justify break-words">{team.description}</p>
               <div className="space-y-2 mt-2">
-              <h3 className="text-sm font-medium text-back-500 uppercase">Membros</h3>
-              <ul className="divide-y divide-gray-200">
-                {team.members.map((members) => {
-                return (
-                  <li key={members._id} className="py-3 flex items-center">
-                  <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3">
-                    {members.name.charAt(0) || 'U'}
-                  </div>
-                  <div>
-                    <p className="font-medium">{members.name || 'Usuário'}</p>
-                    <p className="text-sm text-gray-500">{members.email || ''}</p>
-                  </div>
-                  </li>
-                );
-                })}
-              </ul>
+                <h3 className="text-sm font-medium text-back-500 uppercase">Membros</h3>
+                <ul className="divide-y divide-gray-200">
+                  {team.members.map((member) => (
+                    <li key={member._id} className="py-3 flex items-center">
+                      <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3">
+                        {member.name.charAt(0) || "U"}
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.name || "Usuário"}</p>
+                        <p className="text-sm text-gray-500">{member.email || ""}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           ))}
         </div>
       )}
-
-      {showCreateModal && (
+  
+      {showCreateModal && user.role === "admin" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nova Equipe</h2>
-
+  
             <div className="mb-4">
               <label htmlFor="name_team" className="block text-gray-700 font-medium mb-2">
                 Nome da Equipe
@@ -200,7 +207,7 @@ interface Team {
                 required
               />
             </div>
-
+  
             <div className="mb-4">
               <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
                 Descrição
@@ -214,7 +221,7 @@ interface Team {
                 required
               />
             </div>
-
+  
             <div className="mb-6">
               <label className="block text-gray-700 font-medium mb-2">
                 Selecione os Membros
@@ -242,7 +249,7 @@ interface Team {
                 ))}
               </div>
             </div>
-
+  
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
@@ -265,6 +272,6 @@ interface Team {
       )}
     </Layout>
   );
-};
+}
 
 export default AdminTeams;

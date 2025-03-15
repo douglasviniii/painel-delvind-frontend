@@ -33,30 +33,33 @@ const Dashboard: React.FC = () => {
 
   //excluir relatorio
   const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este relatório?')) {
-      const storedUsers = localStorage.getItem("data");
-      const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-      const user = objectUser;
-
-      if(user && user.role === 'admin'){
-      try {
-        await axios.delete(`${EndPointAPI}/reportadmin/delete/${id}`);
-        alert('Excluído com sucesso!');
-        location.reload();
-      } catch (error) {
-        alert('Ocorreu um erro ao excluir o relatório');
-      }
-    }else{
-      try {
-        await axios.delete(`${EndPointAPI}/reportemployee/delete/${id}`);
-        alert('Excluído com sucesso!');
-        location.reload();
-      } catch (error) {
-        alert('Ocorreu um erro ao excluir o relatório');
-      }      
+    if (!window.confirm('Tem certeza que deseja excluir este relatório?')) return;
+  
+    const storedUsers = localStorage.getItem("data");
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      alert('Usuário não encontrado!');
+      return;
     }
-    };
-  }
+  
+    const endpoint = user.role === 'admin'
+      ? `${EndPointAPI}/reportadmin/delete/${id}`
+      : `${EndPointAPI}/reportemployee/delete/${id}`;
+  
+    try {
+      await axios.delete(endpoint, {
+        headers: {
+          Authorization: `Bearer ${Cookie.get('token')}`,
+        },
+      });
+      alert('Excluído com sucesso!');
+      setReports(prev => prev.filter(report => report.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir o relatório:', error);
+      alert('Ocorreu um erro ao excluir o relatório');
+    }
+  };
 
   //Enviar relatório para o Admin
   const handleSendReport = async (id: string) => {
@@ -74,34 +77,96 @@ const Dashboard: React.FC = () => {
   };
 
   //Buscar relatórios criados pelo colaborador
-  const handlefindreports = async () => { 
+  const handlefindreports = async () => {
     const storedUsers = localStorage.getItem("data");
-    const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-    const user = objectUser;
-
-    if(user && user.role === 'admin'){
-      setIsAdmin(true);
-      try {
-        const response = await axios.get(`${EndPointAPI}/reportadmin/find`);
-        setReports(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar relatórios:', error);
-      } 
-    } else {
-      try {
-        const response = await axios.get(`${EndPointAPI}/reportemployee/find`,{
-          headers:{
-            Authorization: `Bearer ${Cookie.get('token')}`,
-          }
-        });
-        setReports(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar relatórios:', error);
-      }
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      console.error('Usuário não encontrado');
+      return;
     }
-  }
+  
+    const endpoint = user.role === 'admin'
+      ? `${EndPointAPI}/reportadmin/find`
+      : `${EndPointAPI}/reportemployee/find`;
+  
+    if (user.role === 'admin') {
+      setIsAdmin(true);
+    }
+  
+    const headers = user.role !== 'admin' ? {
+      Authorization: `Bearer ${Cookie.get('token')}`,
+    } : {};
+  
+    try {
+      const response = await axios.get(endpoint, { headers });
+      setReports(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar relatórios:', error);
+    }
+  };
+
   //baixar em PDF
   const handleDownloadPDF = async (id: string) => {
+    const report = reports.find((r) => r._id === id);
+    if (!report) return;
+  
+    const reportElement = reportRefs.current[id];
+    if (!reportElement) {
+      alert('Erro ao gerar PDF. Por favor, visualize o relatório primeiro.');
+      return;
+    }
+  
+    try {
+      const dataUrl = await toPng(reportElement, {
+        backgroundColor: '#fff',
+        quality: 1.0,
+        pixelRatio: 2,
+      });
+  
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+  
+      const imgWidth = 210;
+      const imgHeight = (reportElement.offsetHeight * imgWidth) / reportElement.offsetWidth;
+  
+      const pageHeight = 297; // Altura de uma página A4
+      const maxHeight = pageHeight - 10; // Limite para a imagem, com margem
+  
+      let remainingHeight = imgHeight;
+      let yPosition = 0;
+  
+      // Adiciona a primeira página com o conteúdo ajustado
+      const adjustedHeight = Math.min(remainingHeight, maxHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, adjustedHeight);
+      remainingHeight -= adjustedHeight; // Atualiza a altura restante
+  
+      // Adiciona novas páginas apenas se houver conteúdo restante
+      while (remainingHeight > 0) {
+        pdf.addPage(); // Adiciona uma nova página
+        yPosition = 0;
+  
+        // Adiciona o conteúdo da próxima parte da imagem
+        const nextHeight = Math.min(remainingHeight, maxHeight);
+        pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, nextHeight);
+        remainingHeight -= nextHeight; // Atualiza o restante da altura da imagem
+      }
+  
+      // Se houver conteúdo restante, o PDF será salvo
+      if (remainingHeight <= 0) {
+        pdf.save(`relatorio-${report.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+        alert("PDF gerado com sucesso!");
+      }
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+    }
+  };
+  
+/*   const handleDownloadPDF = async (id: string) => {
     const report = reports.find((r) => r._id === id);
     if (!report) return;
 
@@ -134,19 +199,19 @@ const Dashboard: React.FC = () => {
       console.error('Erro ao gerar PDF:', error);
       alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
     }
-  };
+  }; */
 
-  const handlefindalerts = async () => {
+/*   const handlefindalerts = async () => {
     try {
       return
     } catch (error) {
       console.error('Erro ao buscar notificações:', error);
     }
-  }
+  } */
+
   //Busca todos os dados ao atualizar a página
   useEffect(()=> {
     handlefindreports(); 
-    handlefindalerts();
   },[])
 
   return (

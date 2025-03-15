@@ -30,41 +30,38 @@ const CreateReport: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim()) {
-      alert('Por favor, preencha todos os campos');
+    const validateForm = () => {
+      if (!title.trim() || !content.trim()) {
+        alert('Por favor, preencha todos os campos');
+        return false;
+      }
+      return true;
+    };
+  
+    if (!validateForm()) return;
+  
+    const storedUsers = localStorage.getItem("data");
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      alert('Usuário não encontrado!');
       return;
     }
-
-    const storedUsers = localStorage.getItem("data");
-    const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-    const user = objectUser;
-
-    if(user && user.role === 'admin'){
+  
+    const reportData = { title, content };
+    const headers = { Authorization: `Bearer ${Cookie.get('token')}` };
+    const endpoint = user.role === 'admin' 
+      ? `${EndPointAPI}/reportadmin/create` 
+      : `${EndPointAPI}/reportemployee/create`;
+  
     try {
-      await axios.post(`${EndPointAPI}/reportadmin/create`,{title:title,content:content}, {
-        headers:{
-           Authorization: `Bearer ${Cookie.get('token')}`,
-        }
-      })
+      await axios.post(endpoint, reportData, { headers });
       alert('Relatório criado com sucesso!');
       navigate('/dashboard');
     } catch (error) {
+      console.error('Erro ao criar o relatório:', error);
       alert("Ocorreu um erro ao criar o relatório!");
     }
-    }else{
-      try {
-        await axios.post(`${EndPointAPI}/reportemployee/create`,{title:title,content:content}, {
-          headers:{
-             Authorization: `Bearer ${Cookie.get('token')}`,
-          }
-        })
-        alert('Relatório criado com sucesso!');
-        navigate('/dashboard');
-      } catch (error) {
-        alert("Ocorreu um erro ao criar o relatório!");
-      }      
-    }
-
   };
 
   return (

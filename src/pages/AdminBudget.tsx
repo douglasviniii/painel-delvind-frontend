@@ -81,59 +81,74 @@ const AdminBudget: React.FC = () => {
         return items.reduce((sum, item) => sum + item.value, 0);
     };
 
-    useEffect(()=>{
-        async function LoadData() {
-            const response = await axios.get(`${EndPointAPI}/budget/find`);
-            setBudgets(response.data);
+    const loadData = async () => {
+        try {
+          const response = await axios.get(`${EndPointAPI}/budget/find`);
+          setBudgets(response.data);
+        } catch (error) {
+          console.error('Erro ao carregar os orçamentos:', error);
+          alert('Ocorreu um erro ao carregar os orçamentos!');
         }
-        LoadData();
-    },[])
-
+    };
 
     const handleCreateBudget = async () => {
+
         if (!newBudget.technician || newBudget.items.length === 0) {
-            alert('Por favor, preencha o técnico responsável e adicione pelo menos um item');
-            return;
+          alert('Por favor, preencha o técnico responsável e adicione pelo menos um item');
+          return;
         }
-
+      
         try {
-            await axios.post(`${EndPointAPI}/budget/create`, {
-                ...newBudget,
-                total: calculateTotal(newBudget.items),
-            });
-            alert('Orçamento criado com sucesso!'); 
-            location.reload();
+
+          await axios.post(`${EndPointAPI}/budget/create`, {
+            ...newBudget,
+            total: calculateTotal(newBudget.items),
+          });
+
+          alert('Orçamento criado com sucesso!');
+
+      
         } catch (error) {
-            alert('Ocorreu um erro ao criar orçamento!');
-            console.log(error);
+
+          console.error('Erro ao criar orçamento:', error);
+          alert('Ocorreu um erro ao criar orçamento! Por favor, tente novamente.');
         }
 
-        setNewBudget({
-            id: '',
-            clientName: '',
-            clientDocument: '',
-            clientEmail: '',
-            clientPhone: '',
-            technician: user?.displayName || '',
-            items: [],
-            technicalNotes: '',
-            total: 0,
-            createdAt: '',
-        });
-
+        resetBudgetForm();
+    
         setShowCreateModal(false);
-    };
+        loadData();
+      };
+      
+      const resetBudgetForm = () => {
+        setNewBudget({
+          id: '',
+          clientName: '',
+          clientDocument: '',
+          clientEmail: '',
+          clientPhone: '',
+          technician: user?.displayName || '',
+          items: [],
+          technicalNotes: '',
+          total: 0,
+          createdAt: '',
+        });
+      };
+      
 
     const deleteBudget = async (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir este orçamento?')) {
-            try {
-                await axios.delete(`${EndPointAPI}/budget/delete/${id}`);
-                location.reload();
-            } catch (error) {
-                alert('Ocorreu um erro ao excluir o orçamento!');
-            }
+        const confirmation = window.confirm('Tem certeza que deseja excluir este orçamento?');
+        if (!confirmation) return;
+      
+        try {
+          await axios.delete(`${EndPointAPI}/budget/delete/${id}`);
+          alert('Orçamento excluído com sucesso!');
+          loadData();
+        } catch (error) {
+          console.error('Erro ao excluir o orçamento:', error);
+          alert('Ocorreu um erro ao excluir o orçamento!');
         }
-    };
+      };
 
     const downloadPDF = (budget: Budget) => {
       const doc = new jsPDF();
@@ -261,19 +276,24 @@ const AdminBudget: React.FC = () => {
     };
 
     const handleSaveEdit = async (id: string) => {
-              if (editedBudget) {
-                  //const updatedBudgets = budgets.map((budget) => budget._id === editedBudget._id ? editedBudget : budget);
-                  try {
-                    await axios.patch(`${EndPointAPI}/budget/update/${id}`, editedBudget);
-                    alert('Alteração realizada com sucesso!');
-                    location.reload();
-                  } catch (error) {
-                    alert('Ocorreu um erro ao atualizar orçamento!');
-                  }
-                  setEditingBudgetId(null);
-                  setEditedBudget(null);
-              }
-    };
+        if (!editedBudget) {
+          alert('Nenhuma alteração foi feita.');
+          return;
+        }
+      
+        try {
+          await axios.patch(`${EndPointAPI}/budget/update/${id}`, editedBudget);
+
+          alert('Alteração realizada com sucesso!');
+          loadData();
+        } catch (error) {
+          console.error('Erro ao atualizar orçamento:', error);
+          alert('Ocorreu um erro ao atualizar orçamento! Por favor, tente novamente.');
+        }
+      
+        setEditingBudgetId(null);
+        setEditedBudget(null);
+      };
 
     const handleShowChart = () => {
               setShowChart(!showChart);
@@ -284,117 +304,126 @@ const AdminBudget: React.FC = () => {
               }
     };
 
+    useEffect(() => {
+        loadData();
+    }, []);
+
     const chartOptions = { responsive: true, plugins: { legend: { position: 'top' as const }, title: { display: true, text: 'Valor Total dos Orçamentos' } } };
          
           return (
-              <Layout>
-                  <div className="mb-6 flex items-center justify-between">
-                      <div className="flex items-center">
-                          <button onClick={() => navigate('/admin')} className="mr-4 text-gray-600 hover:text-gray-900">
-                              <ArrowLeft size={24} />
-                          </button>
-                          <h1 className="text-2xl font-bold">Orçamentos</h1>
-                      </div>
-                      <div>
-                          <button onClick={() => setShowCreateModal(true)} className="btn-primary mr-2">
-                              <Plus size={20} className="mr-1" /> Novo
-                          </button>
-                          <button onClick={handleShowChart} className="btn-secondary mr-2">
-                              <BarChart2 size={20} className="mr-1" /> Gráfico
-                          </button>
-                          <button onClick={() => downloadPDF({ id: 'all', items: budgets.flatMap(budget => budget.items), total: budgets.reduce((acc, budget) => acc + budget.total, 0), createdAt: new Date().toISOString(), technician: user?.displayName || '', technicalNotes: budgets.map(b => b.technicalNotes).join('\n'), clientName: 'Todos os Clientes' })} className="btn-secondary">
-                              <FileText size={20} className="mr-1" /> Relatório
-                          </button>
-                      </div>
-                  </div>
-                  {showChart && <ChartDisplay chartData={chartData} chartOptions={chartOptions} />}
-                  {budgets.length === 0 ? (
-                      <div className="card text-center py-12">
-                          <p className="text-gray-600">Nenhum orçamento encontrado.</p>
-                      </div>
-                  ) : (
-                      <BudgetList
-                          budgets={budgets}
-                          expandedBudgets={expandedBudgets}
-                          toggleExpand={toggleExpand}
-                          handleEditBudget={handleEditBudget}
-                          downloadPDF={downloadPDF}
-                          deleteBudget={deleteBudget}
-                      />
-                  )}
-                  {showCreateModal && (
-                      <BudgetForm
-                          newBudget={newBudget}
-                          setNewBudget={setNewBudget}
-                          currentItem={currentItem}
-                          setCurrentItem={setCurrentItem}
-                          addItem={addItem}
-                          removeItem={removeItem}
-                          calculateTotal={calculateTotal}
-                          handleCreateBudget={handleCreateBudget}
-                          setShowCreateModal={setShowCreateModal}
-                      />
-                  )}
-                  {editingBudgetId && editedBudget && (
-                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                              <h2 className="text-xl font-bold mb-4">Editar Orçamento</h2>
-                              <div className="mb-6">
-                                  <h3 className="text-lg font-medium mb-2">Dados do Cliente (Opcional)</h3>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      <div className="mb-4">
-                                          <label className="block text-gray-700 font-medium mb-2">Nome do Cliente</label>
-                                          <input type="text" value={editedBudget.clientName} onChange={(e) => setEditedBudget({ ...editedBudget, clientName: e.target.value })} className="input-field" />
-                                      </div>
-                                      <div className="mb-4">
-                                          <label className="block text-gray-700 font-medium mb-2">Documento</label>
-                                          <input type="text" value={editedBudget.clientDocument} onChange={(e) => setEditedBudget({ ...editedBudget, clientDocument: e.target.value })} className="input-field" />
-                                      </div>
-                                      <div className="mb-4">
-                                          <label className="block text-gray-700 font-medium mb-2">Email</label>
-                                          <input type="email" value={editedBudget.clientEmail} onChange={(e) => setEditedBudget({ ...editedBudget, clientEmail: e.target.value })} className="input-field" />
-                                      </div>
-                                      <div className="mb-4">
-                                          <label className="block text-gray-700 font-medium mb-2">Telefone</label>
-                                          <input type="tel" value={editedBudget.clientPhone} onChange={(e) => setEditedBudget({ ...editedBudget, clientPhone: e.target.value })} className="input-field" />
-                                      </div>
-                                  </div>
-                              </div>
-                              <div className="mb-6">
-                                  <h3 className="text-lg font-medium mb-2">Itens do Orçamento</h3>
-                                  <div className="overflow-x-auto">
-                                      <table className="min-w-full divide-y divide-gray-200">
-                                          <thead className="bg-gray-50">
-                                              <tr>
-                                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody className="bg-white divide-y divide-gray-200">
-                                              {editedBudget.items.map((item) => (
-                                                  <tr key={item.id}>
-                                                      <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
-                                                      <td className="px-6 py-4">{item.description}</td>
-                                                      <td className="px-6 py-4 text-right">R$ {item.value.toFixed(2)}</td>
-                                                  </tr>
-                                              ))}
-                                          </tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                              <div className="mb-6">
-                                  <label className="block text-gray-700 font-medium mb-2">Observações Técnicas</label>
-                                  <textarea value={editedBudget.technicalNotes} onChange={(e) => setEditedBudget({ ...editedBudget, technicalNotes: e.target.value })} className="input-field" rows={4} />
-                              </div>
-                              <div className="flex justify-end space-x-2">
-                                  <button type="button" onClick={() => setEditingBudgetId(null)} className="btn-secondary">Cancelar</button>
-                                  <button type="button" onClick={() => handleSaveEdit(editedBudget._id)} className="btn-primary">Salvar</button>
-                              </div>
-                          </div>
-                      </div>
-                  )}
-              </Layout>
+            <Layout>
+                <div className="mb-6 flex flex-wrap items-center justify-between">
+                <div className="flex items-center">
+                    <button onClick={() => navigate('/admin')} className="mr-4 text-gray-600 hover:text-gray-900">
+                    <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-2xl font-bold text-center sm:text-left">Orçamentos</h1>
+                </div>
+                <div className="mt-4 sm:mt-0 flex flex-wrap sm:flex-nowrap justify-center sm:justify-end w-full sm:w-auto">
+                    <button onClick={() => setShowCreateModal(true)} className="btn-primary sm:w-auto w-full sm:mr-2 mb-2 sm:mb-0">
+                    <Plus size={20} className="mr-1" /> Novo
+                    </button>
+                    <button onClick={handleShowChart} className="btn-secondary sm:w-auto w-full sm:mr-2 mb-2 sm:mb-0">
+                    <BarChart2 size={20} className="mr-1" /> Gráfico
+                    </button>
+                    <button onClick={() => downloadPDF({ id: 'all', items: budgets.flatMap(budget => budget.items), total: budgets.reduce((acc, budget) => acc + budget.total, 0), createdAt: new Date().toISOString(), technician: user?.displayName || '', technicalNotes: budgets.map(b => b.technicalNotes).join('\n'), clientName: 'Todos os Clientes' })} className="btn-secondary sm:w-auto w-full">
+                    <FileText size={20} className="mr-1" /> Relatório
+                    </button>
+                </div>
+                </div>
+
+            {showChart && <ChartDisplay chartData={chartData} chartOptions={chartOptions} />}
+
+            {budgets.length === 0 ? (
+                <div className="card text-center py-12">
+                <p className="text-gray-600">Nenhum orçamento encontrado.</p>
+                </div>
+            ) : (
+                <BudgetList
+                budgets={budgets}
+                expandedBudgets={expandedBudgets}
+                toggleExpand={toggleExpand}
+                handleEditBudget={handleEditBudget}
+                downloadPDF={downloadPDF}
+                deleteBudget={deleteBudget}
+                />
+            )}
+
+            {showCreateModal && (
+                <BudgetForm
+                newBudget={newBudget}
+                setNewBudget={setNewBudget}
+                currentItem={currentItem}
+                setCurrentItem={setCurrentItem}
+                addItem={addItem}
+                removeItem={removeItem}
+                calculateTotal={calculateTotal}
+                handleCreateBudget={handleCreateBudget}
+                setShowCreateModal={setShowCreateModal}
+                />
+            )}
+
+            {editingBudgetId && editedBudget && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <h2 className="text-xl font-bold mb-4">Editar Orçamento</h2>
+                    <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Dados do Cliente (Opcional)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-2">Nome do Cliente</label>
+                        <input type="text" value={editedBudget.clientName} onChange={(e) => setEditedBudget({ ...editedBudget, clientName: e.target.value })} className="input-field" />
+                        </div>
+                        <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-2">Documento</label>
+                        <input type="text" value={editedBudget.clientDocument} onChange={(e) => setEditedBudget({ ...editedBudget, clientDocument: e.target.value })} className="input-field" />
+                        </div>
+                        <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-2">Email</label>
+                        <input type="email" value={editedBudget.clientEmail} onChange={(e) => setEditedBudget({ ...editedBudget, clientEmail: e.target.value })} className="input-field" />
+                        </div>
+                        <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-2">Telefone</label>
+                        <input type="tel" value={editedBudget.clientPhone} onChange={(e) => setEditedBudget({ ...editedBudget, clientPhone: e.target.value })} className="input-field" />
+                        </div>
+                    </div>
+                    </div>
+                    <div className="mb-6">
+                    <h3 className="text-lg font-medium mb-2">Itens do Orçamento</h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {editedBudget.items.map((item) => (
+                            <tr key={item.id}>
+                                <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
+                                <td className="px-6 py-4">{item.description}</td>
+                                <td className="px-6 py-4 text-right">R$ {item.value.toFixed(2)}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    <div className="mb-6">
+                    <label className="block text-gray-700 font-medium mb-2">Observações Técnicas</label>
+                    <textarea value={editedBudget.technicalNotes} onChange={(e) => setEditedBudget({ ...editedBudget, technicalNotes: e.target.value })} className="input-field" rows={4} />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                    <button type="button" onClick={() => setEditingBudgetId(null)} className="btn-secondary">Cancelar</button>
+                    <button type="button" onClick={() => handleSaveEdit(editedBudget._id)} className="btn-primary">Salvar</button>
+                    </div>
+                </div>
+                </div>
+            )}
+            </Layout>
+
           );
       };
       

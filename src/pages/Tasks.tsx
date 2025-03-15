@@ -8,9 +8,8 @@ const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
 const Tasks: React.FC = () => {
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [user, setUser] = useState<any[]>([]);
-
+const [showCreateModal, setShowCreateModal] = useState(false);
+const [user, setUsers] = useState<any[]>([]);
 
 const [newTask, setNewTask] = useState({
     title: '',
@@ -25,23 +24,35 @@ const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      await axios.put(`${EndPointAPI}/task/status/${id}`,{status:status}, {
-        headers:{
-           Authorization: `Bearer ${Cookie.get('token')}`,
+      await axios.put(
+        `${EndPointAPI}/task/status/${id}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
         }
-      })   
-      location.reload();   
+      );
+
+      fetchTasks();
     } catch (error) {
+      console.error("Erro ao atualizar status:");
       alert("Ocorreu um erro ao atualizar o status!");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta tarefa?')) {
+    if (window.confirm("Tem certeza que deseja excluir esta tarefa?")) {
       try {
-        await axios.delete(`${EndPointAPI}/task/delete/${id}`);
-        location.reload();
+        await axios.delete(`${EndPointAPI}/task/delete/${id}`, {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        });
+
+        fetchTasks();
       } catch (error) {
+        console.error("Erro ao excluir tarefa:");
         alert("Ocorreu um erro ao excluir essa tarefa!");
       }
     }
@@ -52,62 +63,86 @@ const [isAdmin, setIsAdmin] = useState(false);
       alert('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-
-    const storedUsers = localStorage.getItem("data");
-    const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-    const user = objectUser;
-
-    if(user && user.role === 'admin'){
-      await axios.post(`${EndPointAPI}/task/createadmin`, newTask);
-      alert('Tarefa criada com sucesso!');
-      location.reload();
   
-    }else{
-      await axios.post(`${EndPointAPI}/task/create`, newTask, {
-        headers:{
-           Authorization: `Bearer ${Cookie.get('token')}`,
-        }
-      })
-      alert('Tarefa criada com sucesso!');
-      location.reload();
+    const storedUsers = localStorage.getItem("data");
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      alert('Erro: usuário não encontrado. Faça login novamente.');
+      return;
     }
-
-    setShowCreateModal(false);
+  
+    try {
+      if (user.role === 'admin') {
+        await axios.post(`${EndPointAPI}/task/createadmin`, newTask);
+      } else if (user.role === 'Colaborador') {
+        await axios.post(`${EndPointAPI}/task/create`, newTask, {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        });
+      } else {
+        alert('Erro: Permissão insuficiente para criar tarefas.');
+        return;
+      }
+  
+      alert('Tarefa criada com sucesso!');
+      setShowCreateModal(false);
+    
+      fetchTasks();
+    } catch (error) {
+      alert('Erro ao criar tarefa. Tente novamente.');
+      console.error(error);
+    }
+  };
+  
+  const fetchTasks = async () => {
+    try {
+      const storedUsers = localStorage.getItem("data");
+      const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+      if (!user) {
+        alert('Erro: Usuário não encontrado. Faça login novamente.');
+        return;
+      }
+  
+      let tasks = [];
+  
+      if (user.role === 'admin') {
+        setIsAdmin(true);
+        const { data } = await axios.get(`${EndPointAPI}/task/findadmin`);
+        tasks = data;
+      } else {
+        const { data: userTasks } = await axios.get(`${EndPointAPI}/task/find`, {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        });
+  
+        const { data: adminTasks } = await axios.get(`${EndPointAPI}/task/findtaskmembers`, {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        });
+  
+        const uniqueTasks = [...new Map([...userTasks, ...adminTasks].map(task => [task._id, task])).values()];
+        
+        tasks = uniqueTasks;
+      }
+  
+      setUserTasks(tasks);
+      const { data: usersData } = await axios.get(`${EndPointAPI}/employee/findall`);
+      setUsers(usersData); 
+  
+    } catch (error) {
+      console.error('Erro ao buscar tarefas:', error);
+    }
   };
 
-  useEffect(()=>{
-    async function UpdateData() {
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
-      const storedUsers = localStorage.getItem("data");
-      const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-      const user = objectUser;
-  
-      if(user && user.role === 'admin'){  
-        setIsAdmin(true);
-        const task = await axios.get(`${EndPointAPI}/task/findadmin`);
-        setUserTasks(task.data);
-      }else{
-        const task = await axios.get(`${EndPointAPI}/task/find`,{
-          headers:{
-            Authorization: `Bearer ${Cookie.get('token')}`,
-         }        
-        })
-        
-        const taskcreatedbyadmin = await axios.get(`${EndPointAPI}/task/findtaskmembers`,{
-          headers:{
-            Authorization: `Bearer ${Cookie.get('token')}`,
-         }        
-        })      
-        const resultado = task.data.concat(taskcreatedbyadmin.data);
-        setUserTasks(resultado);
-      }   
-      const users = await axios.get(`${EndPointAPI}/employee/findall`);
-      setUser(users.data);   
-    }
-    UpdateData();
-  },[])
-
-  
   return (
     <Layout>
       <div className="flex justify-between items-center mb-6">

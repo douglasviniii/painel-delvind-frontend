@@ -8,105 +8,121 @@ const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
 const Tickets: React.FC = () => {
 
-  const [isAdmin, setIsAdmin] = useState(Boolean);
+  //const [isAdmin, setIsAdmin] = useState(Boolean);
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [newTicket, setNewTicket] = useState({
     title: '',
     description: '',
   });
-
   const [userTickets, setUserTickets] = useState([]);
   
   const handleCreateTicket = async () => {
     if (!newTicket.title.trim() || !newTicket.description.trim()) {
-      alert('Por favor, preencha todos os campos');
-      return;
+      return alert('Por favor, preencha todos os campos');
     }
-    
-     const objectnewticket = {
+  
+    const objectNewTicket = {
       title: newTicket.title,
       description: newTicket.description,
-    }; 
+    };
+  
     const storedUsers = localStorage.getItem("data");
-    const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-    const user = objectUser;
-
-    if(user && user.role === 'admin'){
-      try {
-        await axios.post(`${EndPointAPI}/called/createadmin`, objectnewticket);
-      } catch (error) {
-        alert("Ocorreu um erro ao criar o chamado!");
-      }
-    }else{
-      try {
-        await axios.post(`${EndPointAPI}/called/create`, objectnewticket, {
-          headers:{
-            Authorization: `Bearer ${Cookie.get('token')}`,
-        }
-        })     
-      } catch (error) {
-        alert("Ocorreu um erro ao criar o chamado!");
-      }
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      return alert('Usuário não encontrado');
     }
-
-    // Send email
-    const subject = `Novo Chamado: ${newTicket.title}`;
-    const body = `Descrição do problema: ${newTicket.description}\n\nCriado por: ${user?.name}`;
-    window.location.href = `mailto:contato@delvind.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    setNewTicket({
-      title: '',
-      description: '',
-    });
-
-    location.reload();
-    setShowCreateModal(false);
+  
+    const endpoint = user.role === 'admin' 
+      ? `${EndPointAPI}/called/createadmin`
+      : `${EndPointAPI}/called/create`;
+  
+    const config = user.role !== 'admin' ? {
+      headers: {
+        Authorization: `Bearer ${Cookie.get('token')}`,
+      },
+    } : {};
+  
+    try {
+      await axios.post(endpoint, objectNewTicket, config);
+  
+      const subject = `Novo Chamado: ${newTicket.title}`;
+      const body = `Descrição do problema: ${newTicket.description}\n\nCriado por: ${user.name}`;
+      window.location.href = `mailto:contato@delvind.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  
+      setNewTicket({ title: '', description: '' });
+      setShowCreateModal(false);
+      fetchUserTickets();
+    } catch (error) {
+      console.error("Erro ao criar o chamado:", error);
+      alert("Ocorreu um erro ao criar o chamado!");
+    }
   };
 
   const handleCloseTicket = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja fechar este chamado?')) {
-      try {
-        await axios.put(`${EndPointAPI}/called/status/${id}`,{status:'closed'});
-        location.reload();
-      } catch (error) {
-        alert("Ocorreu um erro ao fechar esse chamado!");
-      }
+    const confirmation = window.confirm('Tem certeza que deseja fechar este chamado?');
+    if (!confirmation) return;
+  
+    try {
+      await axios.put(`${EndPointAPI}/called/status/${id}`, { status: 'closed' });
+      alert('Chamado fechado com sucesso!');
+      setShowCreateModal(false);  
+      fetchUserTickets();
+    } catch (error) {
+      console.error("Erro ao fechar o chamado:", error);
+      alert("Ocorreu um erro ao fechar esse chamado!");
     }
   };
 
   const handleDeleteTicket = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja fechar este chamado?')) {
-      try {
-        await axios.delete(`${EndPointAPI}/called/delete/${id}`);
-        location.reload();
-      } catch (error) {
-        alert("Ocorreu um erro ao fechar esse chamado!");
-      }
+    const confirmation = window.confirm('Tem certeza que deseja excluir este chamado?');
+    if (!confirmation) return;
+  
+    try {
+      await axios.delete(`${EndPointAPI}/called/delete/${id}`);
+
+      alert('Chamado excluído com sucesso!');
+      setShowCreateModal(false); 
+      fetchUserTickets();
+    } catch (error) {
+      console.error("Erro ao excluir o chamado:", error);
+      alert("Ocorreu um erro ao excluir esse chamado!");
     }
   };
 
-  useEffect(()=>{
-    async function UpdateData() {
+  const fetchUserTickets = async () => {
+    try {
       const storedUsers = localStorage.getItem("data");
-      const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-      const user = objectUser;
-  
-      if(user && user.role === 'admin'){
-        const tickets = await axios.get(`${EndPointAPI}/called/findadmin`);
-        setUserTickets(tickets.data);        
-      }else{
-        const tickets = await axios.get(`${EndPointAPI}/called/find`,{
-          headers:{
-            Authorization: `Bearer ${Cookie.get('token')}`,
-         }        
-        })
-        setUserTickets(tickets.data);
-      }
-    }
-    UpdateData();
-  },[])
+      const user = storedUsers ? JSON.parse(storedUsers) : null;
 
+      if (user) {
+        const endpoint = user.role === 'admin'
+          ? `${EndPointAPI}/called/findadmin`
+          : `${EndPointAPI}/called/find`;
+
+        const config = user.role !== 'admin' ? {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        } : {};
+
+        const response = await axios.get(endpoint, config);
+        setUserTickets(response.data);
+      } else {
+        console.error("Usuário não encontrado no localStorage");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar tickets:", error);
+      alert("Ocorreu um erro ao carregar os tickets.");
+    }
+  };
+
+  useEffect(() => {
+    fetchUserTickets();
+  }, []);
+  
   return (
     <Layout>
       <div className="flex justify-between items-center mb-6">

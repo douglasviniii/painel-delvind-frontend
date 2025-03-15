@@ -3,7 +3,6 @@ import { User, ArrowLeft, UserPlus, Pencil, Trash, X, Users } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import axios from 'axios';
-//import Cookie from 'js-cookie';
 
 const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
@@ -29,105 +28,139 @@ const AdminUsers: React.FC = () => {
   const [idforupdate, setIdforUpdate] = useState('');
 
   const [createUserLoading, setCreateUserLoading] = useState(false);
-  
-   useEffect(() => {
+
+  useEffect(() => {
+    let isMounted = true;
     const fetchUsers = async () => {
       try {
-        const allusers = await axios.get(`${EndPointAPI}/employee/findall`);
-        setUsers(allusers.data);
+        const { data } = await axios.get(`${EndPointAPI}/employee/findall`);
+        if (isMounted) setUsers(data);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
+        alert('Falha ao carregar a lista de usuários.');
       }
     };
-
+  
     fetchUsers();
-  }, []);  
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-
-      const response2 = await axios.get(`${EndPointAPI}/reportemployee/findsends`);
-      setUsersSendReports(response2.data);
-
-      const hasReports = userssendreport.some(report => report.employee_id._id === id);
-
-
+/*   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm('Tem certeza que deseja excluir este usuário?');
+    if (!confirmDelete) return;
+  
+    try {
+      const { data: reports } = await axios.get(`${EndPointAPI}/reportemployee/findsends`);
+      setUsersSendReports(reports);
+  
+      const hasReports = reports.some(report => report.employee_id._id === id);
       if (hasReports) {
         alert('Este usuário possui relatórios enviados e não pode ser excluído.');
         return;
       }
-      try {
-        await axios.delete(`${EndPointAPI}/employee/delete/${id}`);
-        location.reload();
-      } catch (error) {
-        alert('Ocorreu um erro ao excluir o usuário.');
-      }
+  
+      await axios.delete(`${EndPointAPI}/employee/delete/${id}`);
+  
+      setUsers((prevUsers) => prevUsers.filter(user => user._id !== id));
+  
+      alert('Usuário excluído com sucesso!');
+    } catch (error) {
+      alert('Ocorreu um erro ao excluir o usuário.');
     }
-  };
+  }; */
 
   const handleEdit = (userToEdit: any) => {
+    if (!userToEdit) return;
+  
     setShowEditUserModal(true);
+  
     setIdforUpdate(userToEdit._id);
-    setPlaceholdername(userToEdit.name);
-    setPlaceholderteam(userToEdit.team);
-    setPlaceholderpassword(userToEdit.password);
-
-    setName(userToEdit.name);
-    setTeam(userToEdit.team);
-    setPassword(userToEdit.password);
+    setName(userToEdit.name || '');
+    setTeam(userToEdit.team || '');
+    setPassword(userToEdit.password || '');
+  
+    setPlaceholdername(userToEdit.name || '');
+    setPlaceholderteam(userToEdit.team || '');
+    setPlaceholderpassword(userToEdit.password || '');
   };
 
   const handleCreateUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      alert('As senhas não coincidem');
+  
+    if (!name || !team || !email || !password || !confirmPassword) {
+      alert('Por favor, preencha todos os campos.');
       return;
     }
-
+  
     if (password.length < 6) {
-      alert('A senha deve ter pelo menos 6 caracteres');
+      alert('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
- 
+  
+    if (password !== confirmPassword) {
+      alert('As senhas não coincidem.');
+      return;
+    }
+  
     try {
       setCreateUserLoading(true);
-      await axios.post(`${EndPointAPI}/employee/create`,{name, team, email, password});
+  
+      const { data: newUser } = await axios.post(`${EndPointAPI}/employee/create`, {
+        name,
+        team,
+        email,
+        password,
+      });
+  
+      setUsers((prevUsers) => [...prevUsers, newUser]);
+  
       setName('');
       setTeam('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
-      setCreateUserLoading(false);
+  
       setShowCreateUserModal(false);
-      location.reload();
-    } catch (err: any) {
-      alert('Ocorreu um erro ao criar conta do usuário!');
+      alert('Usuário criado com sucesso!');
+    } catch (err) {
+      alert('Ocorreu um erro ao criar a conta do usuário.');
     } finally {
-      setShowCreateUserModal(false);
+      setCreateUserLoading(false);
     }
   };
 
   const handleEditUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
+    if (!name && !team && !password) {
+      alert("Nenhuma alteração foi feita.");
+      return;
+    }
+  
+    const updatedData: Partial<{ name: string; team: string; password: string }> = {};
+    if (name) updatedData.name = name;
+    if (team) updatedData.team = team;
+    if (password) updatedData.password = password;
+  
     try {
       setCreateUserLoading(true);
-
-      const updatedData: any = {};
-      if (name) updatedData.name = name;
-      if (team) updatedData.team = team;
-      if (password) updatedData.password = password;
-
-      await axios.patch(`${EndPointAPI}/employee/update/${idforupdate}`, updatedData);
-
-      setCreateUserLoading(false);
+  
+      const { data } = await axios.patch(`${EndPointAPI}/employee/update/${idforupdate}`, updatedData);
+  
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user._id === idforupdate ? { ...user, ...data } : user
+        )
+      );
+  
+      alert("Usuário atualizado com sucesso!");
       setShowEditUserModal(false);
-      location.reload();
-
-    } catch (err: any) {
-      alert('Ocorreu um erro ao atualizar a conta do usuário!');
+    } catch (err) {
+      alert("Ocorreu um erro ao atualizar a conta do usuário.");
     } finally {
-      setShowEditUserModal(false);
+      setCreateUserLoading(false);
     }
   };
 
@@ -154,70 +187,72 @@ const AdminUsers: React.FC = () => {
       </div>
 
       <div className="card">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Função
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Equipe
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px] divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nome
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                Função
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                Equipe
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ações
+              </th>
+            </tr>
+          </thead>
 
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((userItem) => (
-                <tr key={userItem._id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mr-3">
-                        {userItem.name.charAt(0)}
-                      </div>
-                      <div className="px-6 py-4 whitespace-nowrap text-gray-500">{userItem.name}</div>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.map((userItem) => (
+              <tr key={userItem._id}>
+                <td className="px-4 py-4 whitespace-nowrap text-sm">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center mr-3">
+                      {userItem.name.charAt(0)}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    <div className="text-gray-500">{userItem.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {userItem.role || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {userItem.team || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      Ativo
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <button onClick={() => handleEdit(userItem)} className="text-primary hover:text-primary-dark mr-2">
-                      <Pencil size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(userItem._id)} className="text-red-500 hover:text-red-700">
-                      <Trash size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    <div className="text-gray-500 truncate max-w-[120px] sm:max-w-full">
+                      {userItem.name}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">
+                  {userItem.email}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                  {userItem.role || '-'}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                  {userItem.team || '-'}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    Ativo
+                  </span>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+                  <button onClick={() => handleEdit(userItem)} className="text-primary hover:text-primary-dark mr-2">
+                    <Pencil size={18} />
+                  </button>
+{/*                   <button onClick={() => handleDelete(userItem._id)} className="text-red-500 hover:text-red-700">
+                    <Trash size={18} />
+                  </button> */}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+    </div>
 
       {showCreateUserModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">

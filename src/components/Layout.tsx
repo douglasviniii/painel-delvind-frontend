@@ -120,12 +120,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Link>
 
             <Link
-                  to="/admin/teams"
-                  className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${isActive('/admin/teams')}`}
-                >
-                  <Users size={20} />
-                  <span>Equipes</span>
-                </Link>
+                to="/admin/teams"
+                className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${isActive('/admin/teams')}`}
+              >
+                <Users size={20} />
+                <span>Equipes</span>
+            </Link>
 
             {user.role === 'admin' && (
               <>
