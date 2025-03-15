@@ -308,106 +308,116 @@ const [isAdmin, setIsAdmin] = useState(false);
       {/* Create Task Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {isAdmin ? 'Criar Nova Tarefa' : 'Adicionar Tarefa'}
-            </h2>
-            
-            <div className="mb-4">
-              <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
-                Título
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={newTask.title}
-                onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-                className="input-field"
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
-                Descrição
-              </label>
-              <textarea
-                id="description"
-                value={newTask.description}
-                onChange={(e) => setNewTask({...newTask, description: e.target.value})}
-                className="input-field"
-                rows={3}
-                required
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label htmlFor="dueDate" className="block text-gray-700 font-medium mb-2">
-                Data de Vencimento
-              </label>
-              <input
-                type="date"
-                id="dueDate"
-                value={newTask.date}
-                onChange={(e) => setNewTask({...newTask, date: e.target.value})}
-                className="input-field"
-                required
-              />
-            </div>
-            
-            {isAdmin && (
-              <div className="mb-6">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Atribuir a
-                </label>
-                <div className="space-y-2">
-                  {user.map((u) => (
-                  <div key={u._id} className="flex items-center bg-gray-100 p-2 rounded-md shadow-sm">
-                  <input
+          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <h2 className="text-xl font-bold mb-4">
+            {isAdmin ? 'Criar Nova Tarefa' : 'Adicionar Tarefa'}
+          </h2>
+
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
+              Título
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={newTask.title}
+              onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+              className="input-field"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
+              Descrição
+            </label>
+            <textarea
+              id="description"
+              value={newTask.description}
+              onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+              className="input-field"
+              rows={3}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="dueDate" className="block text-gray-700 font-medium mb-2">
+              Data de Vencimento
+            </label>
+            <input
+              type="date"
+              id="dueDate"
+              value={newTask.date}
+              onChange={(e) => setNewTask({...newTask, date: e.target.value})}
+              className="input-field"
+              required
+            />
+          </div>
+
+      {isAdmin && (
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">
+            Atribuir a
+          </label>
+          <div className="max-h-40 overflow-y-auto space-y-2"> {/* Ajustando a altura e permitindo rolagem */}
+            {user.map((u) => (
+              <div key={u._id} className="flex items-center bg-gray-100 p-2 rounded-md shadow-sm hover:bg-gray-200 transition-colors">
+                <input
                   type="checkbox"
                   id={`assign-${u._id}`}
                   checked={newTask.members.includes(u._id)}
                   onChange={(e) => {
                     if (e.target.checked) {
-                    setNewTask({
-                    ...newTask, 
-                    members: [...newTask.members, u._id]
-                    });
+                      setNewTask({
+                        ...newTask, 
+                        members: [...newTask.members, u._id]
+                      });
                     } else {
-                    setNewTask({
-                    ...newTask, 
-                    members: newTask.members.filter(id => id !== u._id)
-                    });
+                      setNewTask({
+                        ...newTask, 
+                        members: newTask.members.filter(id => id !== u._id)
+                      });
                     }
                   }}
-                  className="mr-2"
-                  />
-                  <label htmlFor={`assign-${u._id}`}>{`${u.name} - ${u.role}`}</label>
+                  className="mr-3"
+                  aria-labelledby={`assign-${u._id}-label`}
+                />
+                <label htmlFor={`assign-${u._id}`} id={`assign-${u._id}-label`} className="flex items-center cursor-pointer">
+                  <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 border-2 border-white">
+                    {u.name.charAt(0)}
                   </div>
-                  ))}
-                </div>
+                  <div>
+                    <p className="font-medium">{u.name}</p>
+                    <p className="text-sm text-gray-500">{u.role}</p>
+                  </div>
+                </label>
               </div>
-            )}
-            
-            <div className="flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                className="btn-secondary"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateTask}
-                className="btn-primary"
-              >
-                {isAdmin ? 'Criar Tarefa' : 'Adicionar Tarefa'}
-              </button>
-            </div>
+            ))}
           </div>
         </div>
       )}
+
+      <div className="flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={() => setShowCreateModal(false)}
+          className="btn-secondary"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={handleCreateTask}
+          className="btn-primary"
+        >
+          {isAdmin ? 'Criar Tarefa' : 'Adicionar Tarefa'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </Layout>
   );
 };
