@@ -99,10 +99,6 @@ const Admin: React.FC = () => {
         LoadData();
     }, [getUsers]);
 
-    console.log(receivedReports);
-
-
-
 
     const generatePDF = async (report: any) => {
         try {

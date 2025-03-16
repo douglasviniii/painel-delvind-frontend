@@ -137,11 +137,11 @@ const AdminReports: React.FC = () => {
     const handleDeleteReport = async (id: string) => {
         if (window.confirm("Tem certeza que deseja excluir este relatório?")) {
             try {
-                await axios.delete(`<span class="math-inline">\{EndPointAPI\}/reportemployee/deletesends/</span>{id}`);
-                alert("Excluído com sucesso!");
-                window.location.reload();
+                await axios.delete(`${EndPointAPI}/reportemployee/deletesends/${id}`);
+                alert('Excluído com sucesso!');
+                location.reload();
             } catch (error) {
-                alert("Ocorreu um erro ao excluir o relatório");
+                alert('Ocorreu um erro ao excluir o relatório');
             }
         }
     };
