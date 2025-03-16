@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import {
     Users,
     Bell,
@@ -17,8 +18,11 @@ import Layout from "../components/Layout";
 import { useData } from "../context/DataContext";
 import { Alert, User } from "../types";
 import axios from 'axios';
+const charactersPerPage = 2000; // Defina o limite de caracteres por página do pdf
 
 const EndPointAPI = import.meta.env.VITE_END_POINT_API;
+// const EndPointAPI = "http://localhost:3000";
+
 
 const Admin: React.FC = () => {
     const {
@@ -44,91 +48,143 @@ const Admin: React.FC = () => {
     const [reportsrecived, setReportsrecived] = useState(Number);
     const [users, setAllUsers] = useState([]);
     const [receivedReports, setReceivedReports] = useState([]);
-
+    const [currentPage, setCurrentPage] = useState(0);
     const navigate = useNavigate();
-
+    //const receivedReports = getAdminReceivedReports();
     const storedUsers = localStorage.getItem("data");
     const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
     const user = objectUser;
 
-    useEffect(() => {
-        const storedUsers = localStorage.getItem("data");
-    
-        if (!storedUsers) {
-          console.log("Dados do usuário não encontrados, redirecionando...");
-          return navigate('/login');
-        }
-    
-        try {
-          const user = JSON.parse(storedUsers);
-          if (user?.role !== "admin") {
-            console.log("Usuário não é admin, redirecionando...");
-            return navigate('/login'); 
-          }
 
-        } catch (error) {
-          console.error("Erro ao analisar dados do usuário:", error);
-          return navigate('/login'); 
+    //authenticação para evitar entradas que n sejam user admin
+    useEffect(() => {
+
+        if (storedUsers) {
+            try {
+
+                if (user && user.role === "admin") {
+                    // Usuário é admin, acesso permitido
+                    console.log("Usuário é admin, acesso permitido.");
+                } else {
+                    // Usuário não é admin, redireciona
+                    console.log("Usuário não é admin, redirecionando...");
+                    navigate('/login'); // Ou outra página apropriada
+                }
+            } catch (error) {
+                console.error("Erro ao analisar dados do usuário:", error);
+                navigate('/login');
+            }
+        } else {
+            console.log("Dados do usuário não encontrados, redirecionando...");
+            navigate('/login');
         }
-      }, [navigate]);
-    
+    }, [navigate]);
+
+
 
     useEffect(() => {
         const LoadData = async () => {
-          try {
-            const [reportResponse, reportReceivedResponse, allUsersResponse] = await Promise.all([
-              axios.get(`${EndPointAPI}/reportadmin/find`),
-              axios.get(`${EndPointAPI}/reportemployee/findsends`),
-              axios.get(`${EndPointAPI}/employee/findall`)
-            ]);
-    
-            setReports(reportResponse.data);
-            setReportsrecived(reportReceivedResponse.data);
-            setReceivedReports(reportReceivedResponse.data);
-            setAllUsers(allUsersResponse.data);
-          } catch (error) {
-            console.error('Erro ao buscar dados:', error);
-          }
-        };
-    
-        LoadData();
-      }, []);
-
-      const generatePDF = (report: any) => {
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text(report.report_id.title, 10, 10);
-    
-        doc.setFontSize(12);
-        let content = report.report_id.content.replace(/<[^>]+>/g, ""); 
-        content = content.replace(/&nbsp;/g, "\n"); 
-    
-        let yPosition = 20;
-    
-        const lines = doc.splitTextToSize(content, 180); 
-    
-        lines.forEach((line, index) => {
-            if (yPosition > doc.internal.pageSize.height - 20) {
-                doc.addPage(); 
-                yPosition = 20; 
+            try {
+                const response = await axios.get(`${EndPointAPI}/reportadmin/find`);
+                setReports(response.data);
+                const response2 = await axios.get(`${EndPointAPI}/reportemployee/findsends`);
+                setReportsrecived(response2.data);
+                setReceivedReports(response2.data);
+                const allusers = await axios.get(`${EndPointAPI}/employee/findall`);
+                setAllUsers(allusers.data);
+            } catch (error) {
+                console.error('Erro ao buscar relatórios:', error);
             }
-    
-            doc.text(line, 10, yPosition);
-            yPosition += 10; 
-        });
+        }
+        LoadData();
+    }, [getUsers]);
 
-        doc.save(`${report.report_id.title}.pdf`);
+    console.log(receivedReports);
+
+
+
+
+    const generatePDF = async (report: any) => {
+        try {
+            if (!report?.report_id) throw new Error("Relatório inválido");
+
+            const { title, author, date, content } = report.report_id;
+
+            // Criando um elemento temporário para renderizar o conteúdo
+            const tempDiv = document.createElement("div");
+            tempDiv.style.width = "800px"; // Define um tamanho fixo para melhor renderização
+            tempDiv.style.padding = "20px";
+            tempDiv.style.fontFamily = "Arial, sans-serif";
+            tempDiv.innerHTML = `
+                <h1>${title || "Relatório"}</h1>
+                <p><strong>Autor:</strong> ${author || "Desconhecido"}</p>
+                <p><strong>Data:</strong> ${date ? new Date(date).toLocaleDateString("pt-BR") : "Sem data"}</p>
+                <hr>
+                <p style="white-space: pre-line;">${content || "Sem conteúdo"}</p>
+            `;
+
+            document.body.appendChild(tempDiv); // Adiciona ao body (invisível)
+
+            const canvas = await html2canvas(tempDiv, { scale: 2 }); // Renderiza o conteúdo como imagem
+            document.body.removeChild(tempDiv); // Remove o elemento temporário
+
+            const imgData = canvas.toDataURL("image/png");
+
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = 210; // Largura da página A4 em mm
+            const pageHeight = 297; // Altura da página A4 em mm
+            const margin = 10;
+            const imgWidth = pageWidth - 2 * margin; // Ajusta a largura para caber na página
+            const imgHeight = (canvas.height * imgWidth) / canvas.width; // Calcula a altura proporcional
+
+            let yPosition = 0;
+            let pageNumber = 1;
+
+            while (yPosition < imgHeight) {
+                if (pageNumber > 1) pdf.addPage(); // Adiciona nova página após a primeira
+
+                const section = document.createElement("canvas");
+                const sectionHeight = Math.min(imgHeight - yPosition, pageHeight - 2 * margin); // Define altura da seção
+                section.width = canvas.width;
+                section.height = (sectionHeight * canvas.width) / imgWidth; // Ajusta para manter a proporção
+
+                const sectionCtx = section.getContext("2d");
+                sectionCtx?.drawImage(
+                    canvas,
+                    0,
+                    yPosition * (canvas.width / imgWidth), // Captura apenas a parte necessária
+                    canvas.width,
+                    section.height,
+                    0,
+                    0,
+                    section.width,
+                    section.height
+                );
+
+                const sectionImgData = section.toDataURL("image/png");
+                pdf.addImage(sectionImgData, "PNG", margin, margin, imgWidth, sectionHeight);
+                yPosition += sectionHeight;
+                pageNumber++;
+            }
+
+            pdf.save(`${title || "Relatorio"}.pdf`);
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error);
+        }
     };
-    
-     
-/*     const generatePDF = (report: any) => {
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text(report.report_id.title, 10, 10);
-        doc.setFontSize(12);
-        doc.text(report.report_id.content.replace(/<[^>]+>/g, ""), 10, 20);
-        doc.save(`${report.report_id.title}.pdf`);
-    }; */
+
+    const handleDeleteReport = async (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir este relatório?")) {
+            try {
+                await axios.delete(`${EndPointAPI}/reportemployee/deletesends/${id}`);
+                alert('Excluído com sucesso!');
+                location.reload();
+            } catch (error) {
+                alert('Ocorreu um erro ao excluir o relatório');
+            }
+        }
+    };
+
 
     const handleSendAlert = async () => {
         if (!alertMessage.trim() || !alertUserId) {
@@ -157,86 +213,87 @@ const Admin: React.FC = () => {
         }
       };
 
-    const handleDeleteReport = async (id: string) => {
-        if (!window.confirm("Tem certeza que deseja excluir este relatório?")) return;
-      
-        try {
-          await axios.delete(`${EndPointAPI}/reportemployee/deletesends/${id}`);
+    /*  IMPLEMENTAR NA VERSAO 2.0
+     const handleCloseAlertModal = () => {
+         setShowAlertModal(false);
+     };
+ 
+     const handleEditAlert = (alert: Alert) => {
+         setEditingAlert(alert);
+     };
+ 
+     const handleDeleteAlert = async (alertId: string) => {
+         console.log("Excluindo alerta com ID:", alertId);
+         if (window.confirm("Tem certeza que deseja excluir este alerta?")) {
+             try {
+                 await deleteAlert(alertId);
+                 console.log("Alerta excluído com sucesso!");
+             } catch (error) {
+                 console.error("Erro ao excluir o alerta:", error);
+             }
+         }
+     };
+     
+     const handleResendAlert = async (alert: Alert) => {
+         try {
+             await resendAlert(alert);
+             console.log("Alerta reenviado com sucesso!");
+         } catch (error) {
+             console.error("Erro ao reenviar alerta:", error);
+             console.log("Erro ao reenviar alerta.");
+         }
+     };
+ 
+     const handleSaveAlert = async (alert: Alert) => {
+         try {
+             if (editingAlert) {
+                 await updateAlert(editingAlert); // Use a função updateAlert do DataContext
+                 setEditingAlert(null);
+             }
+         } catch (error) {
+             console.error("Erro ao salvar alerta:", error);
+             console.log("Erro ao salvar alerta.");
+         }
+     };
+ 
+         const handleOpenAlertModal = () => {
+         setShowAlertModal(true);
+     };
+ 
+     const handleCloseAlertModal = () => {
+         setShowAlertModal(false);
+     };
+ 
+     const handleEditAlert = (alert: Alert) => {
+         setEditingAlert(alert);
+     };
+ 
+     const handleCancelEdit = () => {
+         setEditingAlert(null);
+     }; */
 
-          alert('Relatório excluído com sucesso!');
-
-          setReports((prevReports) => prevReports.filter(report => report._id !== id));
-      
-        } catch (error) {
-          console.error('Erro ao excluir relatório:', error); // Log do erro para debug
-          alert('Ocorreu um erro ao excluir o relatório. Tente novamente mais tarde.');
-        }
-      };
-
-    const handleOpenAlertModal = () => {
-        setShowAlertModal(true);
-    };
-
-/*  IMPLEMENTAR NA VERSAO 2.0
-    const handleCloseAlertModal = () => {
-        setShowAlertModal(false);
-    };
-
-    const handleEditAlert = (alert: Alert) => {
-        setEditingAlert(alert);
-    };
-
-    const handleDeleteAlert = async (alertId: string) => {
-        console.log("Excluindo alerta com ID:", alertId);
-        if (window.confirm("Tem certeza que deseja excluir este alerta?")) {
-            try {
-                await deleteAlert(alertId);
-                console.log("Alerta excluído com sucesso!");
-            } catch (error) {
-                console.error("Erro ao excluir o alerta:", error);
-            }
-        }
-    };
-    
-    const handleResendAlert = async (alert: Alert) => {
-        try {
-            await resendAlert(alert);
-            console.log("Alerta reenviado com sucesso!");
-        } catch (error) {
-            console.error("Erro ao reenviar alerta:", error);
-            console.log("Erro ao reenviar alerta.");
-        }
-    };
-
-    const handleSaveAlert = async (alert: Alert) => {
-        try {
-            if (editingAlert) {
-                await updateAlert(editingAlert); // Use a função updateAlert do DataContext
-                setEditingAlert(null);
-            }
-        } catch (error) {
-            console.error("Erro ao salvar alerta:", error);
-            console.log("Erro ao salvar alerta.");
-        }
-    };
 
     const handleCancelEdit = () => {
         setEditingAlert(null);
-    }; */
+    };
+
+    //Exibe os 3 ultimos Relatorios recebidos
+    const reportsToDisplay = Array.isArray(receivedReports) ? receivedReports.slice(-3).reverse() : []
+
 
     return (
         <Layout>
             <h1 className="text-2xl font-bold mb-6">Painel Administrativo</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="card">
+                {/* <div className="card">
                     <div className="flex items-center mb-4">
                         <FileText size={24} className="text-primary mr-3" />
                         <h2 className="text-xl font-semibold">Relatórios</h2>
                     </div>
                     <div className="text-4xl font-bold text-primary mb-2">{reports.length}</div>
                     <p className="text-gray-600">Total de relatórios criados</p>
-                </div>
+                </div> */}
 
                 <div className="card">
                     <div className="flex items-center mb-4">
@@ -258,65 +315,65 @@ const Admin: React.FC = () => {
                     <p className="text-gray-600">Total de usuários ativos</p>
                 </div>
 
-                <div className="card">
+                { <div className="card">
                     <div className="flex items-center mb-4">
                         <Bell size={24} className="text-primary mr-3" />
                         <h2 className="text-xl font-semibold">Alertas</h2>
                     </div>
                     <button
-                        onClick={handleOpenAlertModal}
+                        // onClick={handleOpenAlertModal}
                         className="text-primary hover:text-primary-dark"
                     >
                         Gerenciar alertas →
                     </button>
-                </div>
+                </div> }
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card">
-                <div className="flex items-center mb-6">
-                    <Inbox size={24} className="text-primary mr-3" />
-                    <h2 className="text-xl font-semibold">Relatórios Recebidos</h2>
-                </div>
-
-                <div className="max-h-[400px] overflow-y-auto space-y-4">
-                    {receivedReports.map((report) => (
-                    <div
-                        key={report._id}
-                        className="p-4 border border-gray-200 rounded-md flex justify-between items-start"
-                    >
-                        <div>
-                        <h3 className="font-medium">{report.report_id.title}</h3>
-                        <p className="text-sm text-gray-600">
-                            Enviado por {report.report_id.author} em{" "}
-                            {new Date(report.report_id.date).toLocaleDateString("pt-BR")}
-                        </p>
-                        </div>
-                        <div className="flex space-x-2">
-                        <button
-                            onClick={() => setSelectedReport(report)}
-                            className="text-primary hover:text-primary-dark text-sm"
-                        >
-                            Visualizar
-                        </button>
-                        <button
-                            onClick={() => generatePDF(report)}
-                            className="text-blue-500 hover:text-blue-700 text-sm"
-                        >
-                            Baixar PDF
-                        </button>
-                        <button
-                            onClick={() => handleDeleteReport(report._id)}
-                            className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                            <Trash size={16} />
-                        </button>
-                        </div>
+                <div className="card">
+                    <div className="flex items-center mb-4">
+                        <Inbox size={24} className="text-primary mr-3" />
+                        <h2 className="text-xl font-semibold">Relatórios Recebidos</h2>
                     </div>
+                    <Link to="/admin/reports" className="text-primary hover:text-primary-dark">
+                        Gerenciar Relatórios →
+                    </Link>
+
+                    {reportsToDisplay.map((report) => (
+                        <div
+                            key={report._id}
+                            className="p-4 border border-gray-200 rounded-md flex justify-between items-start"
+                        >
+                            <div>
+                                <h3 className="font-medium">{report.report_id.title}</h3>
+                                <p className="text-sm text-gray-600">
+                                    Enviado por {report.report_id.author} em{" "}
+                                    {new Date(report.report_id.date).toLocaleDateString("pt-BR")}
+                                </p>
+                            </div>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={() => setSelectedReport(report)}
+                                    className="text-primary hover:text-primary-dark text-sm"
+                                >
+                                    Visualizar
+                                </button>
+                                <button
+                                    onClick={() => generatePDF(report)}
+                                    className="text-blue-500 hover:text-blue-700 text-sm"
+                                >
+                                    Baixar PDF
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteReport(report._id)}
+                                    className="text-red-500 hover:text-red-700 text-sm"
+                                >
+                                    <Trash size={16} />
+                                </button>
+                            </div>
+                        </div>
                     ))}
                 </div>
-                </div>
-
 
                 <div className="card">
                     <div className="flex items-center mb-6">
@@ -377,40 +434,37 @@ const Admin: React.FC = () => {
 
             {selectedReport && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-2xl relative max-h-[90%] overflow-y-auto">
-                    <button
-                        className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
-                        onClick={() => setSelectedReport(null)}
-                    >
-                        <X size={20} />
-                    </button>
-                    <h2 className="text-xl font-semibold mb-4">
-                        {selectedReport.report_id.title}
-                    </h2>
-                    <p className="text-sm text-gray-500 mb-2">
-                        Enviado por {selectedReport.report_id.author} em{" "}
-                        {new Date(selectedReport.report_id.date).toLocaleDateString("pt-BR")}
-                    </p>
-                    <div
-                        className="p-4 border border-gray-300 rounded-md bg-gray-100"
-                        dangerouslySetInnerHTML={{
-                        __html: selectedReport.report_id.content,
-                        }}
-                    />
-                    <div className="mt-4 flex justify-end">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-2xl relative">
                         <button
-                        onClick={() => setSelectedReport(null)}
-                        className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-700"
+                            className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+                            onClick={() => setSelectedReport(null)}
                         >
-                        Fechar
+                            <X size={20} />
                         </button>
-                    </div>
+                        <h2 className="text-xl font-semibold mb-4">
+                            {selectedReport.report_id.title}
+                        </h2>
+                        <p className="text-sm text-gray-500 mb-2">
+                            Enviado por {selectedReport.report_id.author} em{" "}
+                            {new Date(selectedReport.report_id.date).toLocaleDateString("pt-BR")}
+                        </p>
+                        <iframe
+                            srcDoc={selectedReport.report_id.content}
+                            style={{ width: "100%", height: "500px", border: "1px solid #ccc" }}
+                        />
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => setSelectedReport(null)}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-700"
+                            >
+                                Fechar
+                            </button>
+                        </div>
                     </div>
                 </div>
-                )}
+            )}
 
-            {/* IMPLEMENTAR NA VERSAO 2.0 */}
-{/*             {showAlertModal && (
+            {/* {showAlertModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-2xl relative">
                         <button
@@ -481,6 +535,7 @@ const Admin: React.FC = () => {
             )} */}
         </Layout>
     );
+
 };
 
 export default Admin;
