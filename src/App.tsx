@@ -14,7 +14,6 @@ import AdminTeams from './pages/AdminTeams';
 import AdminUsers from './pages/AdminUsers';
 import AdminBudget from './pages/AdminBudget';
 import AdminFinance from './pages/Finance';
-import Github from './pages/Github';
 
 function App() {
   return (
@@ -34,7 +33,6 @@ function App() {
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/AdminFinance" element={<AdminFinance />} />
             <Route path="/admin/budget" element={<AdminBudget />} />
-            <Route path="/github" element={<Github/>}/>
                         <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>

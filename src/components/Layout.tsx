@@ -127,6 +127,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <span>Equipes</span>
             </Link>
 
+              {/* LINK PARA O GITPOD */}
+            <a 
+              href="https://gitpod.io/#https://github.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center space-x-3 p-3 rounded-md transition-colors"
+            >
+              <span>
+                  <img 
+                    src="https://gitpod.io/button/open-in-gitpod.svg" 
+                    alt="Abrir no Gitpod" 
+                  />
+              </span>
+            </a>
+
             {user.role === 'admin' && (
               <>
                 <div className="border-t border-gray-200 my-4"></div>
