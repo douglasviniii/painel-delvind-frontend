@@ -47,29 +47,13 @@ const AdminUsers: React.FC = () => {
     };
   }, []);
 
-/*   const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm('Tem certeza que deseja excluir este usuário?');
-    if (!confirmDelete) return;
-  
+   const handleDesactivate = async (id: string) => {
     try {
-      const { data: reports } = await axios.get(`${EndPointAPI}/reportemployee/findsends`);
-      setUsersSendReports(reports);
-  
-      const hasReports = reports.some(report => report.employee_id._id === id);
-      if (hasReports) {
-        alert('Este usuário possui relatórios enviados e não pode ser excluído.');
-        return;
-      }
-  
-      await axios.delete(`${EndPointAPI}/employee/delete/${id}`);
-  
-      setUsers((prevUsers) => prevUsers.filter(user => user._id !== id));
-  
-      alert('Usuário excluído com sucesso!');
+      alert('Você poderá desativar um usuário!');
     } catch (error) {
-      alert('Ocorreu um erro ao excluir o usuário.');
+      alert('Ocorreu um erro ao desativar o usuário.');
     }
-  }; */
+  }; 
 
   const handleEdit = (userToEdit: any) => {
     if (!userToEdit) return;
@@ -243,9 +227,9 @@ const AdminUsers: React.FC = () => {
                   <button onClick={() => handleEdit(userItem)} className="text-primary hover:text-primary-dark mr-2">
                     <Pencil size={18} />
                   </button>
-{/*                   <button onClick={() => handleDelete(userItem._id)} className="text-red-500 hover:text-red-700">
-                    <Trash size={18} />
-                  </button> */}
+                   <button onClick={() => handleDesactivate(userItem._id)} className="text-red-500 hover:text-red-700">
+                    <X size={18} />
+                  </button> 
                 </td>
               </tr>
             ))}
