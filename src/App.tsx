@@ -15,7 +15,6 @@ import AdminUsers from './pages/AdminUsers';
 import AdminBudget from './pages/AdminBudget';
 import AdminFinance from './pages/Finance';
 import AdminReports from "./pages/AdminReports";
-import EditReport from "./pages/EditModal";
 
 function App() {
   return (
@@ -26,7 +25,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/edit/report" element={<EditReport />} />
             <Route path="/reports/new" element={<CreateReport />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/tickets" element={<Tickets />} />

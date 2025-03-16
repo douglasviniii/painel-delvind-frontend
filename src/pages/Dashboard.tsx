@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link} from 'react-router-dom';
 import { Plus, FileText, Eye, Download, Pencil, Send, Trash, Menu } from 'lucide-react';
 import Layout from '../components/Layout';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import axios from 'axios';
-import EditModal from "../pages/EditModal";
 import Cookie from 'js-cookie';
-
-
+import { Save, ArrowLeft } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 interface Report {
   _id: string;
@@ -24,13 +24,30 @@ const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
 const Dashboard: React.FC = () => {
 
-
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const reportRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [isAdmin, setIsAdmin] = useState(Boolean);
   const [reports, setReports] = useState<Report[]>([]);
-  const [initialData, setInitialData] = useState(null);
+
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [idReport, setIdReport] = useState('');
+  
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['link', 'image'],
+      ['clean'],
+      [{ 'table': true }]
+    ],
+  };
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -202,7 +219,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  
 /*   const handlefindalerts = async () => {
     try {
       return
@@ -211,58 +227,74 @@ const Dashboard: React.FC = () => {
     }
   } */
 
-  //Busca todos os dados ao atualizar a página
-  useEffect(()=> {
-    handlefindreports(); 
-  },[])
-
-
-  const handleEdit = async (id: string) => {
+  const handleEdit = async (report: object) => {
     {
-      const storedUsers = localStorage.getItem("data");
-      const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
-      const user = objectUser;
-
-      const report = reports.find((r) => r._id === id);
-
       if (!report) {
         alert('Relatório não encontrado.');
         return;
       }
-
-      console.log('por dentro do report._id:', report._id); // Adicionado console.log
-
-      try {
-        const response = await axios.get(`{EndPointAPI}/reportemployee/find/{report._id}`, {
-          headers: {
-            Authorization: `Bearer ${Cookie.get('token')}`,
-          },
-        });
-
-        console.log('response:', response); // Adicionado console.log
-
-        setInitialData(response.data);
-        setSelectedReport(report._id);
-        setIsEditModalOpen(true);
-      } catch (error) {
-        console.error('Erro ao buscar relatório para edição:', error);
-        console.log('error:', error); // Adicionado console.log
-        alert('Ocorreu um erro ao buscar o relatório para edição.');
-      }
+      setIdReport(report._id);
+      setTitle((report as { title: string }).title);
+      setContent((report as {content: string }).content);
+      setIsEditModalOpen(true);
     }
   };
 
-  const handleUpdateList = () => {
-    handlefindreports();
-    setInitialData(null);
+  const handleEditClosed = async () =>{
+    setTitle('');
+    setContent('');    
     setIsEditModalOpen(false);
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!window.confirm('Tem certeza que deseja atualizar este relatório?')) return;
+    
+    const data = {title,content};
+    const id = idReport;
+
+    const storedUsers = localStorage.getItem("data");
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+  
+    if (!user) {
+      alert('Usuário não encontrado!');
+      return;
+    }
+  
+    const endpoint = user.role === 'admin'
+      ? `${EndPointAPI}/reportadmin/update/${id}`
+      : `${EndPointAPI}/reportemployee/update/${id}`;
+  
+    try {
+      await axios.patch(endpoint, data,{
+        headers: {
+          Authorization: `Bearer ${Cookie.get('token')}`,
+        },
+      });
+
+      alert('Alteração realizada com sucesso!');
+      LoadData();
+      handleEditClosed();
+    } catch (error) {
+      console.error('Erro ao excluir o relatório:', error);
+      alert('Ocorreu um erro ao excluir o relatório');
+    }
+
   };
 
-
-
-
-
   const dropdownRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
+
+
+
+  const LoadData = async () => {
+    handlefindreports(); 
+  };
+  useEffect(()=> {
+    LoadData(); 
+  },[])
+
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -314,9 +346,69 @@ const Dashboard: React.FC = () => {
       </div>
     )}  */}
 
+    {/*PARA EDIÇÃO DO RELATÓRIO*/}  
+    {isEditModalOpen ? (
+        <>
+          <div className="mb-6 flex items-center">
+            <button
+              className="mr-4 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft onClick={()=> handleEditClosed()} size={24} />
+            </button>
+            <h1 className="text-2xl font-bold">Criar Novo Relatório</h1>
+          </div>
 
+          <form onSubmit={handleSubmit} className="card">
+            <div className="mb-4">
+              <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
+                Título do Relatório
+              </label>
+              <input
+                type="text"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="input-field"
+                required
+              />
+            </div>
 
+            <div className="mb-6">
+              <label htmlFor="content" className="block text-gray-700 font-medium mb-2">
+                Conteúdo
+              </label>
+              <ReactQuill
+                theme="snow"
+                value={content}
+                onChange={setContent}
+                modules={modules}
+                className="bg-white"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Use as ferramentas acima para formatar seu texto e adicionar tabelas.
+              </p>
+            </div>
 
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="btn-secondary mr-2"
+                onClick={()=> handleEditClosed()}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-primary flex items-center"
+              >
+                <Save size={20} className="mr-2" />
+                Salvar Alterações
+              </button>
+            </div>
+          </form>                      
+       </>
+    ):(
+    <>
 
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-2xl font-bold">Meus Relatórios</h1>
@@ -385,7 +477,7 @@ const Dashboard: React.FC = () => {
                       Baixar PDF
                     </button>
                     <button
-                      onClick={() => handleEdit(report._id)}
+                      onClick={() => handleEdit(report)}
                       className="btn-secondary flex items-center mb-2"
                     >
                       <Pencil size={18} className="mr-1" />
@@ -403,6 +495,7 @@ const Dashboard: React.FC = () => {
                     </button>
                   </div>
                 </div>
+
                 {!isSmallScreen() && (
                   <div className="flex space-x-2">
                     <button
@@ -422,27 +515,12 @@ const Dashboard: React.FC = () => {
                     </button>
                     <>
                       <button
-                        onClick={() => handleEdit(report._id)}
+                        onClick={() => handleEdit(report)}
                         className="btn-secondary flex items-center"
                       >
                         <Pencil size={18} className="mr-1" />
                         Editar
                       </button>
-                      {isEditModalOpen && selectedReport && initialData && (
-  <>
-    {console.log("Renderizando o modal de edição")} {/* Teste */}
-    <EditModal
-      initialData={initialData}
-      onClose={() => {
-        setSelectedReport(null);
-        setInitialData(null);
-        setIsEditModalOpen(false);
-      }}
-      onUpdate={handleUpdateList}
-    />
-  </>
-)}
-
                     </>
                     {!isAdmin && (
                       <button onClick={() => handleSendReport(report._id)} className="btn-secondary flex items-center">
@@ -456,8 +534,10 @@ const Dashboard: React.FC = () => {
                     </button>
                   </div>
                 )}
+
               </div>
             </div>
+
             {selectedReport === report._id && (
               <div
                 ref={(el) => (reportRefs.current[report._id] = el)}
@@ -465,12 +545,14 @@ const Dashboard: React.FC = () => {
                 dangerouslySetInnerHTML={{ __html: report.content }}
               />
             )}
+
           </div>
         ))}
       </div>
     )}
-  </Layout>
-  
+    </>
+  )}
+  </Layout> 
   );
 };
 

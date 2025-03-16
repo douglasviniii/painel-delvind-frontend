@@ -11,17 +11,17 @@ interface EditModalProps {
 }
 
 const EndPointAPI = import.meta.env.VITE_END_POINT_API;
-// const EndPointAPI = 'http://localhost:3000';
 
 const EditModal: React.FC<EditModalProps> = ({
-    
     initialData,
     onClose,
     onUpdate,
 }) => {
+
     const { id } = useParams();
     const [title, setTitle] = useState(initialData?.title || "");
     const [description, setDescription] = useState(initialData?.description || "");
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -41,15 +41,21 @@ const EditModal: React.FC<EditModalProps> = ({
             setLoading(false);
             return;
         }
+        
+        const storedUsers = localStorage.getItem("data");
+        const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
+        const user = objectUser;
 
-        try {
-            const response = await axios.put(
+        console.log(initialData);
+
+/*         try {
+             const response = await axios.put(
                 `${EndPointAPI}/reportemployee/update/${initialData._id}`,
                 { title, description },
                 { headers: { Authorization: `Bearer ${Cookie.get("token")}` } }
-            );
+            ); 
 
-            
+        
             onUpdate();
             onClose();
         } catch (err) {
@@ -57,7 +63,7 @@ const EditModal: React.FC<EditModalProps> = ({
             setError("Erro ao atualizar o relatório.");
         } finally {
             setLoading(false);
-        }
+        } */
     };
 
     return (
