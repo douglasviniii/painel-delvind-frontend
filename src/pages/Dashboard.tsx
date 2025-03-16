@@ -1,22 +1,118 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, FileText, Eye, Trash, Download, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, FileText, Eye, Download, Pencil, Send, Trash, Menu } from 'lucide-react';
 import Layout from '../components/Layout';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import axios from 'axios';
+import EditModal from "../pages/EditModal";
 import Cookie from 'js-cookie';
+
+
+
+interface Report {
+  _id: string;
+  title: string;
+  author: string;
+  date: string;
+  content: string;
+  isDropdownOpen?: boolean; // Opcional, pois você adiciona isso dinamicamente
+  // ... outros campos do seu relatório
+}
 
 const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
 const Dashboard: React.FC = () => {
 
-  //const navigate = useNavigate();
 
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const reportRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [isAdmin, setIsAdmin] = useState(Boolean);
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [initialData, setInitialData] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [screenSize, setScreenSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  const isSmallScreen = () => {
+    return screenSize.width < 1200 && screenSize.height < 750;
+  };
+
+  const handleResize = () => {
+    setScreenSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+
+//baixar em PDF
+  const handleDownloadPDF = async (id: string) => {
+    const report = reports.find((r) => r._id === id);
+    if (!report) return;
+  
+    const reportElement = reportRefs.current[id];
+    if (!reportElement) {
+      alert('Erro ao gerar PDF. Por favor, visualize o relatório primeiro.');
+      return;
+    }
+  
+    try {
+      const dataUrl = await toPng(reportElement, {
+        backgroundColor: '#fff',
+        quality: 1.0,
+        pixelRatio: 2,
+      });
+  
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+  
+      const imgWidth = 210;
+      const imgHeight = (reportElement.offsetHeight * imgWidth) / reportElement.offsetWidth;
+  
+      const pageHeight = 297; // Altura de uma página A4
+      const maxHeight = pageHeight - 10; // Limite para a imagem, com margem
+  
+      let remainingHeight = imgHeight;
+      let yPosition = 0;
+  
+      // Adiciona a primeira página com o conteúdo ajustado
+      const adjustedHeight = Math.min(remainingHeight, maxHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, adjustedHeight);
+      remainingHeight -= adjustedHeight; // Atualiza a altura restante
+  
+      // Adiciona novas páginas apenas se houver conteúdo restante
+      while (remainingHeight > 0) {
+        pdf.addPage(); // Adiciona uma nova página
+        yPosition = 0;
+  
+        // Adiciona o conteúdo da próxima parte da imagem
+        const nextHeight = Math.min(remainingHeight, maxHeight);
+        pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, nextHeight);
+        remainingHeight -= nextHeight; // Atualiza o restante da altura da imagem
+      }
+  
+      // Se houver conteúdo restante, o PDF será salvo
+      if (remainingHeight <= 0) {
+        pdf.save(`relatorio-${report.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+        alert("PDF gerado com sucesso!");
+      }
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
+    }
+  };
 
   //implementar na segunda versão!
 /*   const [userAlerts, setUserAlerts] = useState([
@@ -106,101 +202,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  //baixar em PDF
-  const handleDownloadPDF = async (id: string) => {
-    const report = reports.find((r) => r._id === id);
-    if (!report) return;
   
-    const reportElement = reportRefs.current[id];
-    if (!reportElement) {
-      alert('Erro ao gerar PDF. Por favor, visualize o relatório primeiro.');
-      return;
-    }
-  
-    try {
-      const dataUrl = await toPng(reportElement, {
-        backgroundColor: '#fff',
-        quality: 1.0,
-        pixelRatio: 2,
-      });
-  
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-  
-      const imgWidth = 210;
-      const imgHeight = (reportElement.offsetHeight * imgWidth) / reportElement.offsetWidth;
-  
-      const pageHeight = 297; // Altura de uma página A4
-      const maxHeight = pageHeight - 10; // Limite para a imagem, com margem
-  
-      let remainingHeight = imgHeight;
-      let yPosition = 0;
-  
-      // Adiciona a primeira página com o conteúdo ajustado
-      const adjustedHeight = Math.min(remainingHeight, maxHeight);
-      pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, adjustedHeight);
-      remainingHeight -= adjustedHeight; // Atualiza a altura restante
-  
-      // Adiciona novas páginas apenas se houver conteúdo restante
-      while (remainingHeight > 0) {
-        pdf.addPage(); // Adiciona uma nova página
-        yPosition = 0;
-  
-        // Adiciona o conteúdo da próxima parte da imagem
-        const nextHeight = Math.min(remainingHeight, maxHeight);
-        pdf.addImage(dataUrl, 'PNG', 0, yPosition, imgWidth, nextHeight);
-        remainingHeight -= nextHeight; // Atualiza o restante da altura da imagem
-      }
-  
-      // Se houver conteúdo restante, o PDF será salvo
-      if (remainingHeight <= 0) {
-        pdf.save(`relatorio-${report.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-        alert("PDF gerado com sucesso!");
-      }
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-    }
-  };
-  
-/*   const handleDownloadPDF = async (id: string) => {
-    const report = reports.find((r) => r._id === id);
-    if (!report) return;
-
-    const reportElement = reportRefs.current[id];
-    if (!reportElement) {
-      alert('Erro ao gerar PDF. Por favor, visualize o relatório primeiro.');
-      return;
-    }
-
-    try {
-      const dataUrl = await toPng(reportElement, {
-        backgroundColor: '#fff',
-        quality: 1.0,
-        pixelRatio: 2,
-      });
-
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const imgWidth = 210;
-      const imgHeight = (reportElement.offsetHeight * imgWidth) / reportElement.offsetWidth;
-
-      pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
-      pdf.save(`relatorio-${report.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-      alert("PDF gerado com sucesso!");
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      alert('Ocorreu um erro ao gerar o PDF. Por favor, tente novamente.');
-    }
-  }; */
-
 /*   const handlefindalerts = async () => {
     try {
       return
@@ -214,95 +216,260 @@ const Dashboard: React.FC = () => {
     handlefindreports(); 
   },[])
 
-  return (
-     <Layout>
-{/*
-      //implementar na segunda versão
-        {userAlerts.length > 0 && (
-        <div className="mb-6 p-4 border border-yellow-200 bg-yellow-50 rounded-md">
-          <h2 className="text-lg font-semibold mb-2">Notificações</h2>
-          <ul>
-             {userAlerts.map(alert => (
-              <li key={alert.id} className="flex justify-between items-center py-2 border-b border-yellow-200">
-                <span>{alert.message}</span>
-                <button onClick={() => handleMarkAlertAsRead(alert.id)} className="text-sm text-blue-600">Marcar como lida</button>
-              </li>
-            ))} 
-          </ul>
-        </div>
-      )}  */}
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Meus Relatórios</h1>
-        <Link to="/reports/new" className="btn-primary flex items-center">
+  const handleEdit = async (id: string) => {
+    {
+      const storedUsers = localStorage.getItem("data");
+      const objectUser = storedUsers ? JSON.parse(storedUsers) : null;
+      const user = objectUser;
+
+      const report = reports.find((r) => r._id === id);
+
+      if (!report) {
+        alert('Relatório não encontrado.');
+        return;
+      }
+
+      console.log('por dentro do report._id:', report._id); // Adicionado console.log
+
+      try {
+        const response = await axios.get(`{EndPointAPI}/reportemployee/find/{report._id}`, {
+          headers: {
+            Authorization: `Bearer ${Cookie.get('token')}`,
+          },
+        });
+
+        console.log('response:', response); // Adicionado console.log
+
+        setInitialData(response.data);
+        setSelectedReport(report._id);
+        setIsEditModalOpen(true);
+      } catch (error) {
+        console.error('Erro ao buscar relatório para edição:', error);
+        console.log('error:', error); // Adicionado console.log
+        alert('Ocorreu um erro ao buscar o relatório para edição.');
+      }
+    }
+  };
+
+  const handleUpdateList = () => {
+    handlefindreports();
+    setInitialData(null);
+    setIsEditModalOpen(false);
+  };
+
+
+
+
+
+  const dropdownRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.keys(dropdownRefs.current).forEach((reportId) => {
+        const dropdownRef = dropdownRefs.current[reportId].current;
+        if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
+          setReports((prevReports) =>
+            prevReports.map((report) =>
+              report._id === reportId
+                ? { ...report, isDropdownOpen: false }
+                : report
+            )
+          );
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [reports]);
+
+  const handleReportDropdownToggle = (reportId: string) => {
+    setReports((prevReports) =>
+      prevReports.map((report) =>
+        report._id === reportId
+          ? { ...report, isDropdownOpen: !report.isDropdownOpen }
+          : report
+      )
+    );
+  };
+  
+  return (
+    <Layout>
+    {/*
+    //implementar na segunda versão
+      {userAlerts.length > 0 && (
+      <div className="mb-6 p-4 border border-yellow-200 bg-yellow-50 rounded-md">
+        <h2 className="text-lg font-semibold mb-2">Notificações</h2>
+        <ul>
+           {userAlerts.map(alert => (
+            <li key={alert.id} className="flex justify-between items-center py-2 border-b border-yellow-200">
+              <span>{alert.message}</span>
+              <button onClick={() => handleMarkAlertAsRead(alert.id)} className="text-sm text-blue-600">Marcar como lida</button>
+            </li>
+          ))} 
+        </ul>
+      </div>
+    )}  */}
+
+
+
+
+
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold">Meus Relatórios</h1>
+      <Link to="/reports/new" className="btn-primary flex items-center">
+        <Plus size={20} className="mr-2" />
+        Criar Relatório
+      </Link>
+    </div>
+
+    {reports.length === 0 ? (
+      <div className="card text-center py-12">
+        <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+        <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhum relatório encontrado</h2>
+        <p className="text-gray-600 mb-6">Comece criando seu primeiro relatório</p>
+        <Link to="/reports/new" className="btn-primary inline-flex items-center">
           <Plus size={20} className="mr-2" />
           Criar Relatório
         </Link>
       </div>
-
-      {reports.length === 0 ? (
-        <div className="card text-center py-12">
-          <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhum relatório encontrado</h2>
-          <p className="text-gray-600 mb-6">Comece criando seu primeiro relatório</p>
-          <Link to="/reports/new" className="btn-primary inline-flex items-center">
-            <Plus size={20} className="mr-2" />
-            Criar Relatório
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {reports.map((report) => (
-            <div key={report._id} className="card">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-semibold">{report.title}</h2>
-                  <p className="text-gray-600 text-sm">
-                    Criado por {report.author} em {new Date(report.date).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setSelectedReport(selectedReport === report._id ? null : report._id)}
-                    className="btn-secondary flex items-center"
-                  >
-                    <Eye size={18} className="mr-1" />
-                    Visualizar
-                  </button>
-                  <button
-                    onClick={() => handleDownloadPDF(report._id)}
-                    className="btn-secondary flex items-center"
-                    disabled={selectedReport !== report._id}
-                  >
-                    <Download size={18} className="mr-1" />
-                    Baixar PDF
-                  </button>
-                  
-                    {!isAdmin && (
-                    <button onClick={() => handleSendReport(report._id)} className="btn-secondary flex items-center">
-                      <Send size={18} className="mr-1" />
-                      Enviar
-                    </button>
-                    )}
-
-                  <button onClick={() => handleDelete(report._id)} className="btn-danger flex items-center">
-                    <Trash size={18} className="mr-1" />
-                      Excluir
-                  </button>
-                </div>
+    ) : (
+      <div className="grid grid-cols-1 gap-6">
+        {reports.map((report) => (
+          <div key={report._id} className="card">
+            <div className="flex flex-col md:flex-row md:justify-between items-start mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">{report.title}</h2>
+                <p className="text-gray-600 text-sm">
+                  Criado por {report.author} em {new Date(report.date).toLocaleDateString('pt-BR')}
+                </p>
               </div>
-              {selectedReport === report._id && (
+              <div className="relative">
+                {isSmallScreen() && (
+                  <button
+                    onClick={() => handleReportDropdownToggle(report._id)} // Correção aqui: passe report._id
+                    className="btn-secondary flex items-center"
+                  >
+                    <Menu size={18} className="mr-1" />
+                    Opções
+                  </button>
+                )}
                 <div
-                  ref={(el) => (reportRefs.current[report._id] = el)}
-                  className="mt-4 p-4 border border-gray-200 rounded-md bg-white"
-                  dangerouslySetInnerHTML={{ __html: report.content }}
-                />
-              )}
+                  ref={(el) => {
+                    if (!dropdownRefs.current[report._id]) {
+                      dropdownRefs.current[report._id] = { current: null };
+                    }
+                    dropdownRefs.current[report._id].current = el;
+                  }}
+                  className={`absolute right-0 mt-2 bg-white rounded-md shadow-lg p-2 z-10 ${
+                    report.isDropdownOpen ? '' : 'hidden'
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <button
+                      onClick={() => setSelectedReport(selectedReport === report._id ? null : report._id)}
+                      className="btn-secondary flex items-center mb-2"
+                    >
+                      <Eye size={18} className="mr-1" />
+                      Visualizar
+                    </button>
+                    <button
+                      onClick={() => handleDownloadPDF(report._id)}
+                      className="btn-secondary flex items-center mb-2"
+                      disabled={selectedReport !== report._id}
+                    >
+                      <Download size={18} className="mr-1" />
+                      Baixar PDF
+                    </button>
+                    <button
+                      onClick={() => handleEdit(report._id)}
+                      className="btn-secondary flex items-center mb-2"
+                    >
+                      <Pencil size={18} className="mr-1" />
+                      Editar
+                    </button>
+                    {!isAdmin && (
+                      <button onClick={() => handleSendReport(report._id)} className="btn-secondary flex items-center mb-2">
+                        <Send size={18} className="mr-1" />
+                        Enviar
+                      </button>
+                    )}
+                    <button onClick={() => handleDelete(report._id)} className="btn-danger flex items-center">
+                      <Trash size={18} className="mr-1" />
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+                {!isSmallScreen() && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setSelectedReport(selectedReport === report._id ? null : report._id)}
+                      className="btn-secondary flex items-center"
+                    >
+                      <Eye size={18} className="mr-1" />
+                      Visualizar
+                    </button>
+                    <button
+                      onClick={() => handleDownloadPDF(report._id)}
+                      className="btn-secondary flex items-center"
+                      disabled={selectedReport !== report._id}
+                    >
+                      <Download size={18} className="mr-1" />
+                      Baixar PDF
+                    </button>
+                    <>
+                      <button
+                        onClick={() => handleEdit(report._id)}
+                        className="btn-secondary flex items-center"
+                      >
+                        <Pencil size={18} className="mr-1" />
+                        Editar
+                      </button>
+                      {isEditModalOpen && selectedReport && initialData && (
+  <>
+    {console.log("Renderizando o modal de edição")} {/* Teste */}
+    <EditModal
+      initialData={initialData}
+      onClose={() => {
+        setSelectedReport(null);
+        setInitialData(null);
+        setIsEditModalOpen(false);
+      }}
+      onUpdate={handleUpdateList}
+    />
+  </>
+)}
+
+                    </>
+                    {!isAdmin && (
+                      <button onClick={() => handleSendReport(report._id)} className="btn-secondary flex items-center">
+                        <Send size={18} className="mr-1" />
+                        Enviar
+                      </button>
+                    )}
+                    <button onClick={() => handleDelete(report._id)} className="btn-danger flex items-center">
+                      <Trash size={18} className="mr-1" />
+                      Excluir
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-    </Layout> 
+            {selectedReport === report._id && (
+              <div
+                ref={(el) => (reportRefs.current[report._id] = el)}
+                className="mt-4 p-4 border border-gray-200 rounded-md bg-white"
+                dangerouslySetInnerHTML={{ __html: report.content }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+  </Layout>
   
   );
 };
