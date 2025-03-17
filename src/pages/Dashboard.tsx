@@ -147,24 +147,10 @@ const Dashboard: React.FC = () => {
 
   //excluir relatorio
   const handleDelete = async (id: string) => {
-
+    if (!window.confirm('Tem certeza que deseja excluir este relatório?')) return;
+  
     const storedUsers = localStorage.getItem("data");
     const user = storedUsers ? JSON.parse(storedUsers) : null;
-
-    const { data: reports } = await axios.get(`${EndPointAPI}/reportemployee/findsendsemployee`, {
-      headers: {
-        Authorization: `Bearer ${Cookie.get('token')}`,
-      }
-    });
-
-    const reportExists = reports.some((report: { employee_id: { _id: string } }) => report.employee_id._id === user._id);
-
-    if (reportExists) {
-      alert('Você não pode excluir esse relatório! Relatório foi enviado para o administrativo.');
-      return;
-    }
-
-    if (!window.confirm('Tem certeza que deseja excluir este relatório?')) return;
   
     if (!user) {
       alert('Usuário não encontrado!');
@@ -176,18 +162,22 @@ const Dashboard: React.FC = () => {
       : `${EndPointAPI}/reportemployee/delete/${id}`;
   
     try {
-       await axios.delete(endpoint, {
+      await axios.delete(endpoint, {
         headers: {
           Authorization: `Bearer ${Cookie.get('token')}`,
         },
-      }); 
+      });
+  
       alert('Excluído com sucesso!');
-      setReports(prev => prev.filter(report => report.id !== id));
+      
+      // Atualiza a lista de relatórios chamando a API novamente
+      handlefindreports();
     } catch (error) {
       console.error('Erro ao excluir o relatório:', error);
       alert('Ocorreu um erro ao excluir o relatório');
     }
   };
+  
 
   //Enviar relatório para o Admin
   const handleSendReport = async (id: string) => {
