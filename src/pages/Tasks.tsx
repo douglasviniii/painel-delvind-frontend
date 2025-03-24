@@ -19,7 +19,7 @@ const [newTask, setNewTask] = useState({
 });
 
 const [userTasks, setUserTasks] = useState<any[]>([]); // Correção aqui!
-
+const [updateCounter, setUpdateCounter] = useState(0);
 const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -41,60 +41,102 @@ const [isAdmin, setIsAdmin] = useState(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Tem certeza que deseja excluir esta tarefa?")) {
-      try {
-        await axios.delete(`${EndPointAPI}/task/delete/${id}`, {
-          headers: {
-            Authorization: `Bearer ${Cookie.get('token')}`,
-          },
-        });
+  // Atualiza a lista de tarefas quando o updateCounter mudar
+useEffect(() => {
+  fetchTasks();
+}, [updateCounter]);
 
-        fetchTasks();
-      } catch (error) {
-        console.error("Erro ao excluir tarefa:");
-        alert("Ocorreu um erro ao excluir essa tarefa!");
-      }
-    }
-  };
+// Função para excluir tarefa
+const handleDelete = async (taskId: string) => {
+  try {
+    const confirmed = window.confirm('Tem certeza que deseja excluir esta tarefa?');
+    if (!confirmed) return;
 
-  const handleCreateTask = async () => {
-    if (!newTask.title.trim() || !newTask.description.trim() || !newTask.date) {
-      alert('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-  
     const storedUsers = localStorage.getItem("data");
     const user = storedUsers ? JSON.parse(storedUsers) : null;
-  
+
     if (!user) {
       alert('Erro: usuário não encontrado. Faça login novamente.');
       return;
     }
-  
-    try {
-      if (user.role === 'admin') {
-        await axios.post(`${EndPointAPI}/task/createadmin`, newTask);
-      } else if (user.role === 'Colaborador') {
-        await axios.post(`${EndPointAPI}/task/create`, newTask, {
-          headers: {
-            Authorization: `Bearer ${Cookie.get('token')}`,
-          },
-        });
-      } else {
-        alert('Erro: Permissão insuficiente para criar tarefas.');
-        return;
-      }
-  
-      alert('Tarefa criada com sucesso!');
-      setShowCreateModal(false);
-    
-      fetchTasks();
-    } catch (error) {
-      alert('Erro ao criar tarefa. Tente novamente.');
-      console.error(error);
+
+    if (user.role === 'admin') {
+      await axios.delete(`${EndPointAPI}/task/deleteadmin/${taskId}`);
+    } else if (user.role === 'Colaborador') {
+      await axios.delete(`${EndPointAPI}/task/delete/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${Cookie.get('token')}`,
+        },
+      });
+    } else {
+      alert('Erro: Permissão insuficiente para excluir tarefas.');
+      return;
     }
-  };
+
+    alert('Tarefa excluída com sucesso!');
+    setUpdateCounter(updateCounter + 1); // Atualiza o contador para forçar o useEffect
+  } catch (error) {
+    alert('Erro ao excluir tarefa. Tente novamente.');
+    console.error(error);
+  }
+};
+
+
+const handleCreateTask = async () => {
+  if (!newTask.title.trim() || !newTask.description.trim() || !newTask.date) {
+    alert('Por favor, preencha todos os campos obrigatórios');
+    return;
+  }
+
+  // Corrige a diferença de fuso horário sem alterar a data original inserida pelo usuário
+  const selectedDate = new Date(newTask.date);
+  selectedDate.setDate(selectedDate.getDate() + 1); // Adiciona 1 dia à data selecionada
+  selectedDate.setHours(23, 59, 59, 999); // Define o horário final do dia
+
+  try {
+    const taskData = {
+      ...newTask,
+      date: selectedDate.toISOString(), // Salva a data ajustada no formato ISO
+    };
+
+    const storedUsers = localStorage.getItem("data");
+    const user = storedUsers ? JSON.parse(storedUsers) : null;
+
+    if (!user) {
+      alert('Erro: usuário não encontrado. Faça login novamente.');
+      return;
+    }
+
+    // Criação de tarefa com base na permissão do usuário
+    if (user.role === 'admin') {
+      await axios.post(`${EndPointAPI}/task/createadmin`, taskData);
+    } else if (user.role === 'Colaborador') {
+      await axios.post(`${EndPointAPI}/task/create`, taskData, {
+        headers: {
+          Authorization: `Bearer ${Cookie.get('token')}`,
+        },
+      });
+    } else {
+      alert('Erro: Permissão insuficiente para criar tarefas.');
+      return;
+    }
+
+    alert('Tarefa criada com sucesso!');
+    setShowCreateModal(false);
+    setUpdateCounter(updateCounter + 1); // Atualizar lista de tarefas
+    fetchTasks();
+  } catch (error) {
+    alert('Erro ao criar tarefa. Tente novamente.');
+    console.error(error);
+  }
+};
+  
+
+  // Atualiza a lista de tarefas quando o updateCounter mudar
+  useEffect(() => {
+    fetchTasks();
+  }, [updateCounter]);
+  
   
   const fetchTasks = async () => {
     try {
@@ -170,7 +212,8 @@ const [isAdmin, setIsAdmin] = useState(false);
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
           {/* Pending Tasks */}
           <div className="card">
             <div className="flex items-center mb-4">
@@ -181,7 +224,7 @@ const [isAdmin, setIsAdmin] = useState(false);
               {userTasks
                 .filter(task => task.status === 'pending')
                 .map((task, index) => (
-                  <div key={task.id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <div key={task.id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200 shadow-sm">
                     <h3 className="font-medium">{task.title}</h3>
                     <p className="text-sm text-gray-600 mb-2">{task.description}</p>
                     <div className="flex justify-between items-center text-xs text-gray-500">
@@ -225,7 +268,7 @@ const [isAdmin, setIsAdmin] = useState(false);
               {userTasks
                 .filter(task => task.status === 'in-progress')
                 .map((task, index) => (
-                  <div key={task._id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <div key={task._id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200 shadow-sm">
                     <h3 className="font-medium">{task.title}</h3>
                     <p className="text-sm text-gray-600 mb-2">{task.description}</p>
                     <div className="flex justify-between items-center text-xs text-gray-500">
@@ -269,7 +312,7 @@ const [isAdmin, setIsAdmin] = useState(false);
               {userTasks
                 .filter(task => task.status === 'completed')
                 .map((task, index) => (
-                  <div key={task._id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                  <div key={task._id || index} className="p-3 bg-gray-50 rounded-md border border-gray-200 shadow-sm">
                     <h3 className="font-medium">{task.title}</h3>
                     <p className="text-sm text-gray-600 mb-2">{task.description}</p>
                     <div className="flex justify-between items-center text-xs text-gray-500">
