@@ -1,15 +1,15 @@
 import React from 'react';
-import { Budget } from '../../types/budget'; // Assumindo que você tem um arquivo de tipos
+import { Budget } from '../../types/budget';
 import BudgetItemTable from '../BudgetItemTable';
 import ClientInfoDisplay from '../ClientInfoDisplay';
 import { ChevronDown, ChevronUp, Edit, Download, Send, Trash } from 'lucide-react';
 
 interface BudgetListProps {
     budgets: Budget[];
-    expandedBudgets: string[];
+    expandedBudgets: { [key: string]: boolean }; // Agora é um objeto
     toggleExpand: (id: string) => void;
     handleEditBudget: (budget: Budget) => void;
-    downloadPDF: (budget: Budget, description: string) => void; // Atualiza a tipagem
+    downloadPDF: (budget: Budget) => void;
     deleteBudget: (id: string) => void;
 }
 
@@ -24,7 +24,7 @@ const BudgetList: React.FC<BudgetListProps> = ({
     return (
         <div className="grid grid-cols-1 gap-6">
             {budgets.map((budget) => (
-                <div key={budget.id} className="card">
+                <div key={budget._id} className="card">
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h2 className="text-xl font-semibold">
@@ -38,8 +38,8 @@ const BudgetList: React.FC<BudgetListProps> = ({
                         </div>
                         <div className="flex items-center">
                             <span className="text-lg font-semibold">R$ {budget.total.toFixed(2)}</span>
-                            <button onClick={() => toggleExpand(budget.id)} className="ml-2 text-gray-600 hover:text-gray-900">
-                                {expandedBudgets.includes(budget.id) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            <button onClick={() => toggleExpand(budget._id)} className="ml-2 text-gray-600 hover:text-gray-900">
+                                {expandedBudgets[budget._id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                             </button>
                             <button onClick={() => handleEditBudget(budget)} className="ml-2 text-blue-600 hover:text-blue-800">
                                 <Edit size={20} />
@@ -47,7 +47,7 @@ const BudgetList: React.FC<BudgetListProps> = ({
                         </div>
                     </div>
 
-                    {expandedBudgets.includes(budget.id) && (
+                    {expandedBudgets[budget._id] && ( // Verifica o estado de expansão correto
                         <>
                             <ClientInfoDisplay budget={budget} />
                             <BudgetItemTable items={budget.items} total={budget.total} />
@@ -60,11 +60,10 @@ const BudgetList: React.FC<BudgetListProps> = ({
                             )}
 
                             <div className="flex space-x-2 mt-4">
-                            <button onClick={() => downloadPDF(budget, 'Descrição padrão')} className="btn-secondary flex items-center">
-                            <Download size={18} className="mr-1" /> Baixar
+                                <button onClick={() => downloadPDF(budget)} className="btn-secondary flex items-center">
+                                    <Download size={18} className="mr-1" /> Baixar
                                 </button>
 
-                               
                                 <button onClick={() => {
                                     const subject = 'Orçamento Delvind';
                                     const body = `Prezado cliente,\n\nSegue o orçamento solicitado.\n\nAtenciosamente,\n${budget.technician}`;
