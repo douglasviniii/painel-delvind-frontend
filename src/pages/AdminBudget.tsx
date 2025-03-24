@@ -44,7 +44,7 @@ const AdminBudget: React.FC = () => {
         id: ''
     });
 
-    const [expandedBudgets, setExpandedBudgets] = useState<string[]>([]);
+    const [expandedBudgets, setExpandedBudgets] = useState<{ [key: string]: boolean }>({});
     const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
     const [editedBudget, setEditedBudget] = useState<Budget | null>(null);
     const [showChart, setShowChart] = useState(false);
@@ -262,13 +262,12 @@ const AdminBudget: React.FC = () => {
       };
   };
       
-    const toggleExpand = (id: string) => {
-              if (expandedBudgets.includes(id)) {
-                  setExpandedBudgets(expandedBudgets.filter((budgetId) => budgetId !== id));
-              } else {
-                  setExpandedBudgets([...expandedBudgets, id]);
-              }
-    };
+  const toggleExpand = (id: string) => {
+    setExpandedBudgets((prevExpanded) => ({
+        ...prevExpanded,
+        [id]: !prevExpanded[id],
+    }));
+};
 
     const handleEditBudget = (budget: Budget) => {
               setEditingBudgetId(budget._id);
@@ -339,14 +338,14 @@ const AdminBudget: React.FC = () => {
                 <p className="text-gray-600">Nenhum orçamento encontrado.</p>
                 </div>
             ) : (
-                <BudgetList
-                budgets={budgets}
-                expandedBudgets={expandedBudgets}
-                toggleExpand={toggleExpand}
-                handleEditBudget={handleEditBudget}
-                downloadPDF={downloadPDF}
-                deleteBudget={deleteBudget}
-                />
+              <BudgetList
+              budgets={budgets}
+              expandedBudgets={expandedBudgets} // Agora é um objeto
+              toggleExpand={toggleExpand}
+              handleEditBudget={handleEditBudget}
+              downloadPDF={downloadPDF}
+              deleteBudget={deleteBudget}
+          />
             )}
 
             {showCreateModal && (
