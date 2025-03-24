@@ -50,7 +50,6 @@ const AdminBudget: React.FC = () => {
   const [showChart, setShowChart] = useState(false);
 
 
-  const expandedBudgetsArray = Object.keys(expandedBudgets).filter((key) => expandedBudgets[key]);
 
   const [chartData, setChartData] = useState({
     labels: [] as string[],
@@ -343,7 +342,7 @@ const AdminBudget: React.FC = () => {
       ) : (
         <BudgetList
           budgets={budgets}
-          expandedBudgets={expandedBudgetsArray} // Agora é um objeto
+          expandedBudgets={Object.keys(expandedBudgets).filter((key) => expandedBudgets[key])}
           toggleExpand={toggleExpand}
           handleEditBudget={handleEditBudget}
           downloadPDF={downloadPDF}
