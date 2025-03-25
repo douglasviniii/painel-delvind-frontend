@@ -18,6 +18,7 @@ import AdminReports from "./pages/AdminReports";
 import EditReport from "./pages/EditModal";
 import AdminClients from './pages/AdminClients';
 
+//novidade
 function App() {
   return (
     <Router>
