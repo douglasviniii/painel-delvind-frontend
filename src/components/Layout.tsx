@@ -11,7 +11,8 @@ import {
   User,
   Users,
   Settings,
-  Calculator
+  Calculator,
+  PersonStanding
 } from 'lucide-react';
 import Cookie from 'js-cookie';
 import axios from 'axios';
@@ -43,6 +44,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     Cookie.remove('token');
     localStorage.removeItem('data');
   };
+
+
 
   useEffect(() => { handlenotifications(); }, [])
 
@@ -178,6 +181,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 >
                   <Calculator size={20} />
                   <span>Orçamentos</span>
+                </Link>
+
+                <Link
+                  to="/admin/clients"
+                  className={`flex items-center space-x-3 p-3 rounded-md transition-colors ${isActive('/admin/clients')}`}
+                >
+                  <PersonStanding size={20} />
+                  <span>Clientes</span>
                 </Link>
               </>
             )}

@@ -15,6 +15,8 @@ import AdminUsers from './pages/AdminUsers';
 import AdminBudget from './pages/AdminBudget';
 import AdminFinance from './pages/Finance';
 import AdminReports from "./pages/AdminReports";
+import EditReport from "./pages/EditModal";
+import AdminClients from './pages/AdminClients';
 
 function App() {
   return (
@@ -25,6 +27,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/edit/report" element={<EditReport />} />
             <Route path="/reports/new" element={<CreateReport />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/tickets" element={<Tickets />} />
@@ -33,9 +36,10 @@ function App() {
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/teams" element={<AdminTeams />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/clients" element={<AdminClients />} />
             <Route path="/AdminFinance" element={<AdminFinance />} />
             <Route path="/admin/budget" element={<AdminBudget />} />
-                        <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </DataProvider>
