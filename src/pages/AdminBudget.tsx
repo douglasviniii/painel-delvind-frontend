@@ -85,7 +85,12 @@ const AdminBudget: React.FC = () => {
   const loadData = async () => {
     try {
       const response = await axios.get(`${EndPointAPI}/budget/find`);
-      setBudgets(response.data);
+      
+      const sortedBudgets = response.data.sort((a: { createdAt: string }, b: { createdAt: string }) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setBudgets(sortedBudgets);
     } catch (error) {
       console.error('Erro ao carregar os orçamentos:', error);
       alert('Ocorreu um erro ao carregar os orçamentos!');
