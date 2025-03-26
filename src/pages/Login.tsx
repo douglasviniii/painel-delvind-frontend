@@ -93,7 +93,7 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleAdminLogin}>
             <div className="mb-6">
-            <label htmlFor="adminEmail" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="adminEmail" className="block text-gray-600 font-medium mb-2">
                 Email
               </label>
               <input
@@ -104,7 +104,7 @@ const Login: React.FC = () => {
                 className="input-field"
                 required
               />
-              <label htmlFor="adminPassword" className="block text-gray-700 font-medium mb-2">
+              <label htmlFor="adminPassword" className="block text-gray-600 font-medium mb-2">
                 Senha Administrativa
               </label>
               <input
@@ -261,7 +261,7 @@ const Login: React.FC = () => {
                 </p>
 
                 <div className="mb-6">
-                  <label htmlFor="forgotEmail" className="block text-gray-700 font-medium mb-2">
+                  <label htmlFor="forgotEmail" className="block text-gray-600 font-medium mb-2">
                     Email
                   </label>
                   <input
