@@ -383,13 +383,14 @@ const Dashboard: React.FC = () => {
                 Conteúdo
               </label>
               <ReactQuill
+              
                 theme="snow"
                 value={content}
                 onChange={setContent}
                 modules={modules}
                 className="bg-white"
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-600 mt-2">
                 Use as ferramentas acima para formatar seu texto e adicionar tabelas.
               </p>
             </div>

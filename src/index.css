@@ -262,6 +262,8 @@ body {
   color: #8b51ff; /* Cor primária mais escura ao passar o mouse */
 }
 
+
+
 /* Estilo para o ícone de lixo */
 .text-primary svg {
   vertical-align: middle; /* Alinha verticalmente com o texto */
@@ -273,7 +275,7 @@ body {
 .dark .card { background-color: #2d3748; border-color: #4a5568; color: #f8f8f8; }
 .dark .card.text-center.py-12 { color: #cbd5e1; }
 .dark .mx-auto.text-gray-400 { color: #718096; }
-.dark .text-gray-700 { color: #ffffff; }
+ .dark .text-gray-700 { color: #000000; } /*texto */
 .dark .text-gray-900.font-medium { color: #f8f8f8; }
 .dark .text-gray-500 { color: #a0aec0; }
 .dark .p-4.rounded-md.border.bg-blue-50 { background-color: #8b51ff; border-color: #8b51ff; }
@@ -488,9 +490,9 @@ body {
 .dark .bg-white { background-color: #2d3748; }
 .dark .text-primary { color: #8b51ff; }
 .dark .text-gray-600 { color: #a0aec0; }
-.dark .input-field { background-color: #4a5568; border-color: #718096; color: #e2e8f0; }
+.dark .input-field { background-color: #4a5568; border-color: #718096; color: #000000; }
 .dark .input-field:focus { border-color: #8b51ff; box-shadow: 0 0 0 1px #8b51ff; }
-.dark .block.text-gray-700 { color: #e2e8f0; }
+.dark .block.text-gray-700 { color: #ffffff; }
 .dark .btn-primary { background-color: #8b51ff; color: #f8f8f8; }
 .dark .btn-primary:hover { background-color: #4299e1; }
 .dark .btn-primary:disabled { background-color: #4a5568; color: #718096; }

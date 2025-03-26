@@ -493,16 +493,16 @@ const AdminClients: React.FC = () => {
     <Layout>
       <div className="font-sans flex min-h-screen flex-col p-4">
         <Tabs>
-          <TabList className="mb-4">
+          <TabList className="mb-4 ">
             <Tab>Painel</Tab>
             <Tab>Clientes</Tab>
             <Tab>Emitir Comprovante</Tab>
-            <Tab>Histórico de Comprovantes</Tab>
+            <Tab >Histórico de Comprovantes</Tab>
           </TabList>
 
           {/* Aba Painel */}
           <TabPanel>
-            <h2 className="text-2xl font-semibold mb-4">Painel de Controle</h2>
+            <h2 className="text-2xl font-semiboldmb-4 ">Painel de Controle</h2>
             <div className="flex gap-5">
               <div className="bg-white rounded-md shadow-md p-6 w-1/2">
                 <h3 className="text-lg font-semibold mb-2">Total de Comprovantes</h3>
@@ -563,11 +563,11 @@ const AdminClients: React.FC = () => {
 
           {/* Aba Emitir Comprovante */}
           <TabPanel>
-            <h2 className="text-2xl font-semibold mb-4">Emitir Comprovante Avulso</h2>
+            <h2 className="text-2xl  font-semibold mb-4">Emitir Comprovante Avulso</h2>
             {/* Conteúdo do modal de emitir comprovante */}
             {/* Issue Proof Modal */}
             <div className="bg-white rounded-md shadow-md p-6">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700 text-center">Emitir Comprovante</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-600 text-center">Emitir Comprovante</h3>
               <div className="mb-3">
                 <label htmlFor="proofNumber" className="block text-gray-700 text-sm font-bold mb-1">
                   N° do Comprovante:
@@ -683,7 +683,7 @@ const AdminClients: React.FC = () => {
             {/* Conteúdo do modal de histórico de comprovantes */}
             {/* Proof History Modal */}
             <div className="bg-white rounded-md shadow-md p-6">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700 text-center">
+              <h3 className="text-xl font-semibold mb-4 text-gray-600 text-center">
                 Histórico de Comprovantes
                 {selectedUserIdForHistory && ` - Usuário ${selectedUserIdForHistory}`}
               </h3>
@@ -776,7 +776,7 @@ const AdminClients: React.FC = () => {
             >
               &times;
             </button>
-            <h3 className="text-xl font-semibold mb-4 text-gray-700 text-center">
+            <h3 className="text-xl font-semibold mb-4 text-gray-600 text-center">
               {isEditing ? 'Editar Cliente' : 'Cadastrar Cliente'}
             </h3>
             <div className="mb-4">
