@@ -77,7 +77,7 @@ body {
 }
 
 .dark .btn-danger {
-  background-color: #dc2626;
+  background-color: #ff0000;
   color: white;
 }
 
@@ -137,21 +137,21 @@ body {
 }
 
 /* Outros estilos específicos para o modo escuro, se necessário */
-.dark .text-gray-700 { color: #cbd5e1; }
-.dark .text-gray-600 { color: #a0aec0; }
-.dark .text-gray-500 { color: #718096; }
-.dark .text-gray-400 { color: #4a5568; }
+
+.dark .text-gray-600 { color: #ffffff; }
+.dark .text-gray-500 { color: #ffffff; }
+.dark .text-gray-400 { color: #f3f3f3; }
 .dark .bg-gray-50 { background-color: #2d3748; }
 .dark .bg-gray-100 { background-color: #272c34; }
 .dark .bg-gray-200 { background-color: #333842; }
 .dark .border-gray-200 { border-color: #4a5568; }
-.dark .bg-blue-100 { background-color: #007bff; } /* Exemplo de cor azul clara no escuro */
+.dark .bg-blue-100 { background-color: #09325e; } /* Exemplo de cor azul clara no escuro */
 .dark .text-blue-700 { color: #ffffff; } /* Exemplo de cor azul escura no escuro */
-.dark .bg-green-100 { background-color: #00642b;  } /* Exemplo de cor verde clara no escuro */
+.dark .bg-green-100 { background-color: #00a944;  } /* Exemplo de cor verde clara no escuro */
 .dark .text-green-700 { color: #ffffff; } /* Exemplo de cor verde escura no escuro */
 .dark .bg-yellow-100 { background-color: #d69e2e;  } /* Exemplo de cor amarelo clara no escuro */
 .dark .text-yellow-700 { color: #ffffff; } /* Exemplo de cor amarelo escura no escuro */
-.dark .bg-red-100 { background-color: #ff0000;  } /* Exemplo de cor vermelho clara no escuro */
+
 .dark .text-red-700 { color: #ffffff; } /* Exemplo de cor vermelho escura no escuro */
 
 /* Estilos para a página de Notificações */
@@ -196,7 +196,7 @@ body {
 .text-xl.font-semibold.text-gray-700.mb-2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #4a5568; /* Cor cinza escuro */
+  color: #ffffff; /* Cor cinza escuro */
   margin-bottom: 0.5rem;
 }
 
@@ -241,12 +241,9 @@ body {
   color: #3182ce; /* Cor primária (azul) */
 }
 
-/* Estilo para o texto da mensagem do alerta */
-.text-gray-700 {
-  color: #4a5568; /* Cinza escuro para lidos */
-}
+
 .text-gray-900.font-medium {
-  color: #2d3748; /* Cinza muito escuro para não lidos */
+  color: #ffffff; /* Cinza muito escuro para não lidos */
   font-weight: 500;
 }
 
@@ -276,7 +273,7 @@ body {
 .dark .card { background-color: #2d3748; border-color: #4a5568; color: #f8f8f8; }
 .dark .card.text-center.py-12 { color: #cbd5e1; }
 .dark .mx-auto.text-gray-400 { color: #718096; }
-.dark .text-gray-700 { color: #e2e8f0; }
+.dark .text-gray-700 { color: #ffffff; }
 .dark .text-gray-900.font-medium { color: #f8f8f8; }
 .dark .text-gray-500 { color: #a0aec0; }
 .dark .p-4.rounded-md.border.bg-blue-50 { background-color: #2b6cb0; border-color: #63b3ed; }
@@ -286,7 +283,7 @@ body {
 .dark .text-primary { color: #90cdf4; }
 .dark .hover\:text-primary-dark:hover { color: #6cb2eb; }
 
-.dark .text-gray-700 { color: white; }
+
 
 /* Estilos gerais para a página de Login */
 .min-h-screen {
@@ -349,17 +346,13 @@ body {
   margin-top: 0.5rem;
 }
 
-/* Estilo para a mensagem de erro */
-.bg-red-100 {
-  background-color: #fff5f5;
-}
 
 .border-red-400 {
-  border-color: #f56565;
+  border-color: #ff0000;
 }
 
 .text-red-700 {
-  color: #c53030;
+  color: #ff0000;
 }
 
 .px-4 {
@@ -397,7 +390,7 @@ body {
 /* Estilo para os rótulos */
 .block.text-gray-700.font-medium.mb-2 {
   display: block;
-  color: #4a5568;
+  color: #ffffff;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
@@ -443,7 +436,7 @@ body {
 /* Estilo para o botão secundário (Cancelar/Voltar para o login) */
 .btn-secondary {
   background-color: #e2e8f0;
-  color: #4a5568;
+  color: #000000;
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 500;
@@ -503,8 +496,9 @@ body {
 .dark .btn-primary:disabled { background-color: #4a5568; color: #718096; }
 .dark .btn-secondary { background-color: #4a5568; color: #e2e8f0; }
 .dark .btn-secondary:hover { background-color: #374151; }
-.dark .text-red-700 { color: #f56565; }
-.dark .bg-red-100 { background-color: #2c2929; border-color: #f56565; }
+.dark .text-red-700 { color: #ff0000; }
+.dark .bg-red-100 { background-color: #ff0000;  } /* Exemplo de cor vermelho clara no escuro */
+.dark .bg-red-100 { color: #ffffff;  }
+.dark .text-green-800 {color: #ffffff;}
 .dark .text-primary.hover\:text-primary-dark { color: #90cdf4; }
 .dark .text-primary.hover\:text-primary-dark:hover { color: #63b3ed; }
-
