@@ -35,3 +35,476 @@ body {
 .ql-editor {
   min-height: 200px;
 }
+
+
+.card {
+  /* Default light mode styles */
+  background-color: white;
+  color: black;
+  border: 1px solid #e2e8f0; /* gray-200 */
+  padding: 1rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.dark .card {
+  /* Dark mode styles for the card */
+  background-color: #374151; /* gray-700 */
+  color: #f9fafb; /* gray-100 */
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .mt-4.p-4.border.border-gray-200.rounded-md.bg-white {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .text-gray-900 {
+  color: #f9fafb; /* Or another light color for text */
+}
+
+.dark .text-gray-600 {
+  color: #d1d5db; /* Or another lighter gray for text */
+}
+
+.dark .text-gray-400 {
+  color: #9ca3af; /* Or another lighter gray for text */
+}
+
+.dark .btn-secondary {
+  background-color: #4b5563;
+  color: #e2e8f0;
+}
+
+.dark .btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+/* Estilos gerais para o modo escuro */
+.dark {
+  background-color: #1a202c; /* Cor de fundo escura */
+  color: #f8f8f8; /* Cor do texto clara */
+}
+
+/* Estilos específicos para os cards no modo escuro */
+.dark .card {
+  background-color: #2d3748; /* Cor de fundo do card escuro */
+  border-color: #4a5568; /* Cor da borda do card */
+  color: #f8f8f8; /* Cor do texto dentro do card */
+}
+
+.dark .card h2,
+.dark .card h3 {
+  color: #e2e8f0; /* Cores dos títulos mais claras */
+}
+
+.dark .card p {
+  color: #cbd5e1; /* Cores do texto secundário mais claras */
+}
+
+/* Estilos para o conteúdo do relatório no modo escuro */
+.dark .mt-4.p-4.border.border-gray-200.rounded-md.bg-white {
+  background-color: #2d3748; /* Fundo do conteúdo do relatório */
+  border-color: #4a5568; /* Borda do conteúdo do relatório */
+}
+
+/* Estilos para o modal de criação de tarefa no modo escuro */
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white {
+  background-color: #2d3748; /* Fundo do modal */
+  color: #f8f8f8; /* Cor do texto no modal */
+}
+
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white .input-field,
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white textarea {
+  background-color: #4a5568; /* Fundo dos campos de entrada */
+  color: #e2e8f0; /* Cor do texto nos campos de entrada */
+  border-color: #718096; /* Cor da borda dos campos de entrada */
+}
+
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white label {
+  color: #e2e8f0; /* Cor dos rótulos no modal */
+}
+
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white .btn-secondary {
+  background-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .fixed.inset-0.bg-black.bg-opacity-50 .bg-white .btn-primary {
+  background-color: #4299e1; /* Cor primária escura */
+  color: white;
+}
+
+/* Outros estilos específicos para o modo escuro, se necessário */
+.dark .text-gray-700 { color: #cbd5e1; }
+.dark .text-gray-600 { color: #a0aec0; }
+.dark .text-gray-500 { color: #718096; }
+.dark .text-gray-400 { color: #4a5568; }
+.dark .bg-gray-50 { background-color: #2d3748; }
+.dark .bg-gray-100 { background-color: #272c34; }
+.dark .bg-gray-200 { background-color: #333842; }
+.dark .border-gray-200 { border-color: #4a5568; }
+.dark .bg-blue-100 { background-color: #007bff; } /* Exemplo de cor azul clara no escuro */
+.dark .text-blue-700 { color: #ffffff; } /* Exemplo de cor azul escura no escuro */
+.dark .bg-green-100 { background-color: #00642b;  } /* Exemplo de cor verde clara no escuro */
+.dark .text-green-700 { color: #ffffff; } /* Exemplo de cor verde escura no escuro */
+.dark .bg-yellow-100 { background-color: #d69e2e;  } /* Exemplo de cor amarelo clara no escuro */
+.dark .text-yellow-700 { color: #ffffff; } /* Exemplo de cor amarelo escura no escuro */
+.dark .bg-red-100 { background-color: #ff0000;  } /* Exemplo de cor vermelho clara no escuro */
+.dark .text-red-700 { color: #ffffff; } /* Exemplo de cor vermelho escura no escuro */
+
+/* Estilos para a página de Notificações */
+
+/* Estilo para o botão de voltar */
+.text-gray-600 {
+  color: #4a5568; /* Cor cinza padrão */
+}
+.text-gray-600:hover {
+  color: #2d3748; /* Cor cinza mais escura ao passar o mouse */
+}
+
+/* Estilo para o título da página */
+.text-2xl.font-bold {
+  font-size: 1.5rem; /* Tamanho da fonte */
+  font-weight: 700; /* Peso da fonte */
+}
+
+/* Estilo para o container da notificação (card) */
+.card {
+  background-color: #ffffff; /* Fundo branco */
+  border-radius: 0.375rem; /* Bordas arredondadas */
+  padding: 1rem; /* Espaçamento interno */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Sombra suave */
+}
+
+/* Estilo para o container de nenhuma notificação */
+.card.text-center.py-12 {
+  padding-top: 3rem; /* Ajuste no espaçamento superior */
+  padding-bottom: 3rem; /* Ajuste no espaçamento inferior */
+}
+
+/* Estilo para o ícone de sino */
+.mx-auto.text-gray-400.mb-4 {
+  margin-left: auto;
+  margin-right: auto;
+  color: #a0aec0; /* Cor cinza claro */
+  margin-bottom: 1rem;
+}
+
+/* Estilo para o título "Nenhuma notificação" */
+.text-xl.font-semibold.text-gray-700.mb-2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4a5568; /* Cor cinza escuro */
+  margin-bottom: 0.5rem;
+}
+
+/* Estilo para a mensagem "Você não possui notificações no momento" */
+.text-gray-600 {
+  color: #718096; /* Cor cinza médio */
+}
+
+/* Estilo para o container de cada alerta */
+.p-4.rounded-md.border {
+  padding: 1rem;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* Estilo para alertas não lidos (fundo e borda) */
+.bg-blue-50 {
+  background-color: #ebf8ff; /* Azul claro */
+}
+.border-blue-200 {
+  border-color: #bae6ff; /* Azul claro para a borda */
+}
+
+/* Estilo para alertas lidos (fundo e borda) */
+.bg-gray-50 {
+  background-color: #f9fafb; /* Cinza claro */
+}
+.border-gray-200 {
+  border-color: #e2e8f0; /* Cinza claro para a borda */
+}
+
+/* Estilo para o ícone de sino dentro do alerta */
+.mr-3.mt-1.text-gray-400 {
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+  color: #a0aec0; /* Cor cinza claro para lidos */
+}
+.mr-3.mt-1.text-primary {
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+  color: #3182ce; /* Cor primária (azul) */
+}
+
+/* Estilo para o texto da mensagem do alerta */
+.text-gray-700 {
+  color: #4a5568; /* Cinza escuro para lidos */
+}
+.text-gray-900.font-medium {
+  color: #2d3748; /* Cinza muito escuro para não lidos */
+  font-weight: 500;
+}
+
+/* Estilo para o texto do timestamp */
+.text-xs.text-gray-500.mt-1 {
+  font-size: 0.75rem;
+  color: #a0aec0;
+  margin-top: 0.25rem;
+}
+
+/* Estilo para o botão de excluir */
+.text-primary {
+  color: #3182ce; /* Cor primária (azul) */
+}
+.hover\:text-primary-dark:hover {
+  color: #2c5282; /* Cor primária mais escura ao passar o mouse */
+}
+
+/* Estilo para o ícone de lixo */
+.text-primary svg {
+  vertical-align: middle; /* Alinha verticalmente com o texto */
+}
+
+/* Modo escuro para a página de Notificações */
+.dark .text-gray-600 { color: #cbd5e1; }
+.dark .text-gray-600:hover { color: #e2e8f0; }
+.dark .card { background-color: #2d3748; border-color: #4a5568; color: #f8f8f8; }
+.dark .card.text-center.py-12 { color: #cbd5e1; }
+.dark .mx-auto.text-gray-400 { color: #718096; }
+.dark .text-gray-700 { color: #e2e8f0; }
+.dark .text-gray-900.font-medium { color: #f8f8f8; }
+.dark .text-gray-500 { color: #a0aec0; }
+.dark .p-4.rounded-md.border.bg-blue-50 { background-color: #2b6cb0; border-color: #63b3ed; }
+.dark .p-4.rounded-md.border.bg-gray-50 { background-color: #374151; border-color: #4b5563; }
+.dark .mr-3.mt-1.text-gray-400 { color: #718096; }
+.dark .mr-3.mt-1.text-primary { color: #90cdf4; }
+.dark .text-primary { color: #90cdf4; }
+.dark .hover\:text-primary-dark:hover { color: #6cb2eb; }
+
+.dark .text-gray-700 { color: white; }
+
+/* Estilos gerais para a página de Login */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gray-100 {
+  background-color: #f7fafc; /* Cor de fundo clara */
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+
+
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-md {
+  max-width: 28rem; /* Largura máxima do formulário */
+}
+
+.p-8 {
+  padding: 2rem; /* Espaçamento interno */
+}
+
+.rounded-lg {
+  border-radius: 0.5rem; /* Bordas arredondadas */
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.bg-white {
+  background-color: #ffffff; /* Fundo branco do formulário */
+}
+
+/* Estilo para o título principal */
+.text-3xl.font-bold.text-primary {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #3182ce; /* Cor primária (azul) */
+}
+
+/* Estilo para o subtítulo */
+.text-gray-600.mt-2 {
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+/* Estilo para a mensagem de erro */
+.bg-red-100 {
+  background-color: #fff5f5;
+}
+
+.border-red-400 {
+  border-color: #f56565;
+}
+
+.text-red-700 {
+  color: #c53030;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+/* Estilo para os campos de entrada */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #63b3ed; /* Cor da borda ao focar */
+  box-shadow: 0 0 0 1px #63b3ed;
+}
+
+/* Estilo para os rótulos */
+.block.text-gray-700.font-medium.mb-2 {
+  display: block;
+  color: #4a5568;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* Estilo para o link "Esqueceu sua senha?" */
+.text-sm.text-primary.hover\:text-primary-dark {
+  font-size: 0.875rem;
+  color: #3182ce;
+}
+
+.text-sm.text-primary.hover\:text-primary-dark:hover {
+  color: #2c5282;
+}
+
+/* Estilo para o botão principal (Entrar/Acessar Painel Administrativo) */
+.btn-primary {
+  background-color: #3182ce;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: #2c5282;
+}
+
+.btn-primary:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.btn-primary.flex {
+  justify-content: center;
+}
+
+.btn-primary svg {
+  margin-right: 0.5rem;
+}
+
+/* Estilo para o botão secundário (Cancelar/Voltar para o login) */
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #4a5568;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* Estilo para o link "Acesso Administrativo" */
+.text-primary.hover\:text-primary-dark.flex.items-center.justify-center.mx-auto {
+  color: #3182ce;
+  transition: color 0.2s ease-in-out;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.text-primary.hover\:text-primary-dark.flex.items-center.justify-center.mx-auto:hover {
+  color: #2c5282;
+}
+
+.text-primary.hover\:text-primary-dark.flex.items-center.justify-center.mx-auto svg {
+  margin-right: 0.5rem;
+}
+
+/* Estilo para o ícone de login */
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+/* Estilo para o ícone de chave */
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+/* Estilo para o ícone de escudo */
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+/* Estilos para o modo escuro */
+.dark .bg-gray-100 { background-color: #1a202c; }
+.dark .bg-white { background-color: #2d3748; }
+.dark .text-primary { color: #90cdf4; }
+.dark .text-gray-600 { color: #a0aec0; }
+.dark .input-field { background-color: #4a5568; border-color: #718096; color: #e2e8f0; }
+.dark .input-field:focus { border-color: #63b3ed; box-shadow: 0 0 0 1px #63b3ed; }
+.dark .block.text-gray-700 { color: #e2e8f0; }
+.dark .btn-primary { background-color: #63b3ed; color: #f8f8f8; }
+.dark .btn-primary:hover { background-color: #4299e1; }
+.dark .btn-primary:disabled { background-color: #4a5568; color: #718096; }
+.dark .btn-secondary { background-color: #4a5568; color: #e2e8f0; }
+.dark .btn-secondary:hover { background-color: #374151; }
+.dark .text-red-700 { color: #f56565; }
+.dark .bg-red-100 { background-color: #2c2929; border-color: #f56565; }
+.dark .text-primary.hover\:text-primary-dark { color: #90cdf4; }
+.dark .text-primary.hover\:text-primary-dark:hover { color: #63b3ed; }
+
