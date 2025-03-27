@@ -49,7 +49,7 @@ const Alerts: React.FC = () => {
       {userAlerts.length === 0 ? (
         <div className="card text-center py-12">
           <Bell size={48} className="mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhuma notificação</h2>
+          <h2 className="text-xl font-semibold text-gray-600 mb-2">Nenhuma notificação</h2>
           <p className="text-gray-600">Você não possui notificações no momento</p>
         </div>
       ) : (
@@ -66,7 +66,7 @@ const Alerts: React.FC = () => {
                   <div className="flex items-start">
                     <Bell size={20} className={`mr-3 mt-1 ${alert.read ? 'text-gray-400' : 'text-primary'}`} />
                     <div>
-                      <p className={`${alert.read ? 'text-gray-700' : 'text-gray-900 font-medium'}`}>
+                      <p className={`${alert.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
                         {alert.message}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
