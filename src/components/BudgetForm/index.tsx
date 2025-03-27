@@ -34,26 +34,26 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                     <h3 className="text-lg font-medium mb-2">Dados do Cliente (Opcional)</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="mb-4">
-                            <label className="block text-gray-700 font-medium mb-2">Nome do Cliente</label>
+                            <label className="block text-gray-600 font-medium mb-2">Nome do Cliente</label>
                             <input type="text" value={newBudget.clientName || ''} onChange={(e) => setNewBudget({ ...newBudget, clientName: e.target.value })} className="input-field" />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700 font-medium mb-2">Documento</label>
+                            <label className="block text-gray-600 font-medium mb-2">Documento</label>
                             <input type="text" value={newBudget.clientDocument || ''} onChange={(e) => setNewBudget({ ...newBudget, clientDocument: e.target.value })} className="input-field" />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700 font-medium mb-2">Email</label>
+                            <label className="block text-gray-600 font-medium mb-2">Email</label>
                             <input type="email" value={newBudget.clientEmail || ''} onChange={(e) => setNewBudget({ ...newBudget, clientEmail: e.target.value })} className="input-field" />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700 font-medium mb-2">Telefone</label>
+                            <label className="block text-gray-600 font-medium mb-2">Telefone</label>
                             <input type="tel" value={newBudget.clientPhone || ''} onChange={(e) => setNewBudget({ ...newBudget, clientPhone: e.target.value })} className="input-field" />
                         </div>
                     </div>
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">Técnico Responsável</label>
+                    <label className="block text-gray-600 font-medium mb-2">Técnico Responsável</label>
                     <input type="text" value={newBudget.technician} onChange={(e) => setNewBudget({ ...newBudget, technician: e.target.value })} className="input-field" />
                 </div>
 
@@ -96,7 +96,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">Observações Técnicas</label>
+                    <label className="block text-gray-600 font-medium mb-2">Observações Técnicas</label>
                     <textarea value={newBudget.technicalNotes} onChange={(e) => setNewBudget({ ...newBudget, technicalNotes: e.target.value })} className="input-field" rows={4} />
                 </div>
 
