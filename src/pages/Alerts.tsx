@@ -66,7 +66,7 @@ const Alerts: React.FC = () => {
                   <div className="flex items-start">
                     <Bell size={20} className={`mr-3 mt-1 ${alert.read ? 'text-gray-400' : 'text-primary'}`} />
                     <div>
-                      <p className={`${alert.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
+                      <p className={`${alert.read ? 'text-gray-600' : 'text-gray-800 font-medium'}`}>
                         {alert.message}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
