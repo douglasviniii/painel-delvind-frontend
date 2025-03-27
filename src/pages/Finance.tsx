@@ -471,7 +471,7 @@ const PaymentLinkForm: React.FC<{
       <h2 className="text-xl font-semibold mb-4">Gerar Link de Pagamento</h2>
       <form onSubmit={handleGeneratePaymentLink} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-600">
             Nome para o pagamento
           </label>
           <input
@@ -485,7 +485,7 @@ const PaymentLinkForm: React.FC<{
           
         </div>
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-600">
             Valor (R$)
           </label>
           <input

@@ -201,7 +201,7 @@ const handleCreateTask = async () => {
       {userTasks.length === 0 ? (
         <div className="card text-center py-12">
           <CheckSquare size={48} className="mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Nenhuma tarefa encontrada</h2>
+          <h2 className="text-xl font-semibold text-gray-600 mb-2">Nenhuma tarefa encontrada</h2>
           <p className="text-gray-600 mb-6">Você não possui tarefas atribuídas no momento</p>
           <button 
             onClick={() => setShowCreateModal(true)}
@@ -357,7 +357,7 @@ const handleCreateTask = async () => {
           </h2>
 
           <div className="mb-4">
-            <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="title" className="block text-gray-600 font-medium mb-2">
               Título
             </label>
             <input
@@ -371,7 +371,7 @@ const handleCreateTask = async () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="description" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="description" className="block text-gray-600 font-medium mb-2">
               Descrição
             </label>
             <textarea
@@ -385,7 +385,7 @@ const handleCreateTask = async () => {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="dueDate" className="block text-gray-700 font-medium mb-2">
+            <label htmlFor="dueDate" className="block text-gray-600 font-medium mb-2">
               Data de Vencimento
             </label>
             <input
@@ -400,7 +400,7 @@ const handleCreateTask = async () => {
 
       {isAdmin && (
         <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-gray-600 font-medium mb-2">
             Atribuir a
           </label>
           <div className="max-h-40 overflow-y-auto space-y-2"> {/* Ajustando a altura e permitindo rolagem */}

@@ -308,7 +308,7 @@ const AdminUsers: React.FC = () => {
                         <div>
                           <button
                             type="button"
-                            className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             id={`menu-button-${userItem._id}`}
                             aria-expanded={dropdownOpen === userItem._id}
                             aria-haspopup="true"
@@ -329,14 +329,14 @@ const AdminUsers: React.FC = () => {
                             <div className="py-1" role="none">
                               <button
                                 onClick={() => handleViewDetails(userItem)}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 w-full text-left"
                                 role="menuitem"
                               >
                                 Detalhes
                               </button>
                               <button
                                 onClick={() => handleEdit(userItem)}
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 w-full text-left"
                                 role="menuitem"
                               >
                                 Editar
@@ -400,7 +400,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="name"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Nome completo
                 </label>
@@ -416,7 +416,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="team"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Time
                 </label>
@@ -438,7 +438,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="password"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Senha
                 </label>
@@ -492,7 +492,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="name"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Nome completo
                 </label>
@@ -508,7 +508,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="team"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Time
                 </label>
@@ -529,7 +529,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="email"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Email
                 </label>
@@ -545,7 +545,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="password"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Senha
                 </label>
@@ -565,7 +565,7 @@ const AdminUsers: React.FC = () => {
               <div className="mb-6">
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-gray-700 font-medium mb-2"
+                  className="block text-gray-600 font-medium mb-2"
                 >
                   Confirmar senha
                 </label>

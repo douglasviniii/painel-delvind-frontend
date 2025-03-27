@@ -13,6 +13,7 @@ import axios from 'axios';
 
 const EndPointAPI = import.meta.env.VITE_END_POINT_API;
 
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const AdminBudget: React.FC = () => {
@@ -96,6 +97,7 @@ const AdminBudget: React.FC = () => {
       alert('Ocorreu um erro ao carregar os orçamentos!');
     }
   };
+  
 
   const handleCreateBudget = async () => {
 
@@ -378,19 +380,19 @@ const AdminBudget: React.FC = () => {
               <h3 className="text-lg font-medium mb-2">Dados do Cliente (Opcional)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="mb-4">
-                  <label className="block text-gray-700 font-medium mb-2">Nome do Cliente</label>
+                  <label className="block text-gray-600 font-medium mb-2">Nome do Cliente</label>
                   <input type="text" value={editedBudget.clientName} onChange={(e) => setEditedBudget({ ...editedBudget, clientName: e.target.value })} className="input-field" />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 font-medium mb-2">Documento</label>
+                  <label className="block text-gray-600 font-medium mb-2">Documento</label>
                   <input type="text" value={editedBudget.clientDocument} onChange={(e) => setEditedBudget({ ...editedBudget, clientDocument: e.target.value })} className="input-field" />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 font-medium mb-2">Email</label>
+                  <label className="block text-gray-600 font-medium mb-2">Email</label>
                   <input type="email" value={editedBudget.clientEmail} onChange={(e) => setEditedBudget({ ...editedBudget, clientEmail: e.target.value })} className="input-field" />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 font-medium mb-2">Telefone</label>
+                  <label className="block text-gray-600 font-medium mb-2">Telefone</label>
                   <input type="tel" value={editedBudget.clientPhone} onChange={(e) => setEditedBudget({ ...editedBudget, clientPhone: e.target.value })} className="input-field" />
                 </div>
               </div>
@@ -419,7 +421,7 @@ const AdminBudget: React.FC = () => {
               </div>
             </div>
             <div className="mb-6">
-              <label className="block text-gray-700 font-medium mb-2">Observações Técnicas</label>
+              <label className="block text-gray-600 font-medium mb-2">Observações Técnicas</label>
               <textarea value={editedBudget.technicalNotes} onChange={(e) => setEditedBudget({ ...editedBudget, technicalNotes: e.target.value })} className="input-field" rows={4} />
             </div>
             <div className="flex justify-end space-x-2">
