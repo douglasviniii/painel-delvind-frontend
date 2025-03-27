@@ -88,7 +88,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           <div className="flex items-center space-x-4">
             <Link to="/alerts" className="relative">
-              <Bell size={24} className={`text-gray-700 ${isDarkMode ? 'text-gray-300' : ''}`} />
+              <Bell size={24} className={`text-gray-600 ${isDarkMode ? 'text-gray-300' : ''}`} />
               {notifications > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {notifications}
@@ -108,7 +108,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {/* Dark Mode Toggle Button - Visible on mobile (md:hidden) */}
             <button
               onClick={toggleDarkMode}
-              className="md:hidden text-gray-700"
+              className="md:hidden text-gray-600"
             >
               {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
             </button>
@@ -116,7 +116,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={toggleMobileMenu}
-              className="md:hidden text-gray-700"
+              className="md:hidden text-gray-600"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -124,7 +124,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {/* Dark Mode Toggle Button - Visible on desktop (md:flex) */}
             <button
               onClick={toggleDarkMode}
-              className="hidden md:flex text-gray-700"
+              className="hidden md:flex text-gray-600"
             >
               {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
             </button>
