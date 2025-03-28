@@ -287,99 +287,190 @@ const AdminClients: React.FC = () => {
       alert('Nenhum cliente selecionado.');
       return;
     }
-
+  
     import('jspdf').then((jsPDF) => {
       const doc = new jsPDF.default({
         orientation: 'p',
         unit: 'mm',
         format: 'a4',
       });
-
+  
+      // Configurações de layout
       const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      let y = 20;
-      const lineHeight = 7;
+      const margin = 15;
+      let y = 15;
       const headerColor = '#9966cc';
       const textColor = '#333333';
       const inputBackgroundColor = '#f0f0f0';
-      const labelWidth = 35;
-      const rectRadius = 5;
-
-      const roundedRect = (x, y, w, h, r, color) => {
-        doc.setFillColor(color);
-        doc.roundedRect(x, y, w, h, r, r, 'FD');
+      const circleColor = '#8b51ff';
+      const rectRadius = 3;
+      const numberWidth = 8;
+      const fieldXPadding = 4;
+      const fieldYPadding = 2;
+      const minFieldHeight = 7;
+      const circleRadius = 3.5;
+      const borderWidth = 0.5;
+      const headerBottomMargin = 6;
+      const columnGap = 8;
+      const maxFieldWidth = (pageWidth / 2) - margin - columnGap/2 - numberWidth - 5;
+  
+      // Função para desenhar número dentro de bolinha
+      const drawNumberInCircle = (x, y, number) => {
+        doc.setDrawColor(headerColor);
+        doc.setFillColor(circleColor);
+        doc.circle(x, y, circleRadius, 'FD');
+        
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor('#ffffff');
+        const textPos = doc.getTextDimensions(number.toString(), { fontSize: 8 });
+        doc.text(number.toString(), x - textPos.w/2, y + textPos.h/3);
+        doc.setTextColor(textColor);
       };
-
-      // Cabeçalho "Delvind LTDA CLIENTE"
+  
+      // Função para criar campos
+      const createField = (x, y, label, value, fieldNumber, fieldWidth) => {
+        doc.setFontSize(8);
+        const textLines = doc.splitTextToSize(value || '', fieldWidth - 2*fieldXPadding);
+        const lineHeight = 3.5;
+        const fieldHeight = Math.max(minFieldHeight, (textLines.length * lineHeight) + 2*fieldYPadding);
+        
+        // Desenhar número dentro de bolinha (apenas para campos 1-6)
+        if (fieldNumber <= 6) {
+          drawNumberInCircle(x + circleRadius, y + fieldHeight/2, fieldNumber);
+        }
+        
+        // Label acima do campo
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, x + numberWidth, y - 1.5);
+        
+        // Campo de fundo
+        doc.setFillColor(inputBackgroundColor);
+        doc.roundedRect(
+          x + numberWidth,
+          y,
+          fieldWidth,
+          fieldHeight,
+          rectRadius,
+          rectRadius,
+          'FD'
+        );
+        
+        // Texto do campo
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(textColor);
+        doc.text(textLines, 
+          x + numberWidth + fieldXPadding, 
+          y + fieldYPadding + 2.5, {
+          lineHeightFactor: 1
+        });
+        
+        return fieldHeight;
+      };
+  
+      // Cabeçalho com borda
       doc.setFillColor(headerColor);
-      doc.rect(margin, y, pageWidth - 2 * margin, 10, 'FD');
-      doc.setFontSize(14);
+      doc.setDrawColor('#000000');
+      doc.setLineWidth(borderWidth);
+      doc.roundedRect(
+        margin, 
+        y, 
+        pageWidth - 2 * margin, 
+        9, 
+        2,
+        2, 
+        'FD'
+      );
+      
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor('#ffffff');
-      doc.text('Delvind LTDA', margin + 5, y + 7);
-      doc.setFontSize(12);
-      doc.text('CLIENTE', pageWidth - margin - 15, y + 7, { align: 'right' });
-      doc.setTextColor(textColor);
-      y += 15;
-
-      // Informações do Cliente (Coluna Esquerda)
-      const clientInfo = [
-        { label: 'NOME', value: selectedClient.name },
-        { label: 'CNPJ/CPF', value: selectedClient.cnpjCpf },
-        { label: 'TELEFONE', value: selectedClient.phone },
-        { label: 'E-MAIL', value: selectedClient.email },
-      ];
-
-      const addressInfo = [
-        { label: 'ENDEREÇO', value: selectedClient.address },
-        { label: 'CEP', value: selectedClient.cep },
-        { label: 'CIDADE', value: selectedClient.city },
-        { label: 'SITE', value: selectedClient.website },
-      ];
-
-      const leftColumnX = margin;
-      const rightColumnX = pageWidth / 2 + 5;
-      let currentYLeft = y;
-
+      doc.text('Delvind LTDA', margin + 5, y + 6);
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      clientInfo.forEach((item, index) => {
-        const rowY = currentYLeft + index * 12;
-        doc.setTextColor(textColor);
-        doc.text(`${(index + 1).toString().padStart(2, '0')}`, leftColumnX, rowY + 4);
-        doc.text(item.label, leftColumnX + 10, rowY + 4);
-        doc.setFont('helvetica', 'normal');
-        doc.setFillColor(inputBackgroundColor);
-        const rectWidth = pageWidth / 2 - margin - labelWidth - 10;
-        roundedRect(leftColumnX + labelWidth + 5, rowY - 2, rectWidth, 8, rectRadius, inputBackgroundColor);
-        doc.setTextColor(textColor);
-        doc.text(item.value || '', leftColumnX + labelWidth + 10, rowY + 4);
+      doc.text('CLIENTE', pageWidth - margin - 10, y + 6, { align: 'right' });
+      y += 9 + headerBottomMargin;
+  
+      // Dados do cliente organizados em duas colunas
+      const clientFields = [
+        // Coluna esquerda
+        [
+          { label: 'NOME', value: selectedClient.name || '' },
+          { label: 'CNPJ/CPF', value: selectedClient.cnpjCpf || '' },
+          { label: 'TELEFONE', value: selectedClient.phone || '' }
+        ],
+        // Coluna direita
+        [
+          { label: 'E-MAIL', value: selectedClient.email || '' },
+          { label: 'ENDEREÇO', value: selectedClient.address || '' },
+          { label: 'CIDADE/CEP', value: `${selectedClient.city || ''} ${selectedClient.cep || ''}` }
+        ]
+      ];
+  
+      // Desenhar os campos
+      let maxY = y;
+      const fieldWidth = (pageWidth / 2) - margin - columnGap/2 - numberWidth - 5;
+      
+      clientFields.forEach((column, colIndex) => {
+        const xPos = colIndex === 0 ? margin : pageWidth/2 + columnGap/2;
+        let currentY = y;
+        
+        column.forEach((field, fieldIndex) => {
+          const fieldNumber = (colIndex * column.length) + fieldIndex + 1;
+          const fieldHeight = createField(
+            xPos,
+            currentY,
+            field.label,
+            field.value,
+            fieldNumber,
+            fieldWidth
+          );
+          
+          currentY += fieldHeight + 6;
+          maxY = Math.max(maxY, currentY);
+        });
       });
-      currentYLeft += clientInfo.length * 12 + 15;
-
-      // Informações de Endereço (Coluna Direita)
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      let currentYRight = y;
-      addressInfo.forEach((item, index) => {
-        const rowY = y + index * 12;
-        doc.setTextColor(textColor);
-        doc.text(`${(index + 5).toString().padStart(2, '0')}`, rightColumnX, rowY + 4);
-        doc.text(item.label, rightColumnX + 10, rowY + 4);
-        doc.setFont('helvetica', 'normal');
+  
+      // Campo adicional para site/observações (se existir)
+      if (selectedClient.website || selectedClient.notes) {
+        const fullWidth = pageWidth - 2*margin - numberWidth;
+        const combinedValue = [selectedClient.website, selectedClient.notes].filter(Boolean).join('\n');
+        const textLines = doc.splitTextToSize(combinedValue, fullWidth - 2*fieldXPadding);
+        const fieldHeight = Math.max(minFieldHeight, (textLines.length * 3.5) + 2*fieldYPadding);
+        
+        // Label
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SITE/OBSERVAÇÕES', margin + numberWidth, maxY - 1.5);
+        
+        // Campo
         doc.setFillColor(inputBackgroundColor);
-        const rectWidth = pageWidth / 2 - margin - labelWidth - 10;
-        roundedRect(rightColumnX + labelWidth + 5, rowY - 2, rectWidth, 8, rectRadius, inputBackgroundColor);
-        doc.setTextColor(textColor);
-        doc.text(item.value || '', rightColumnX + labelWidth + 10, rowY + 4);
-      });
-      y += Math.max(clientInfo.length, addressInfo.length) * 12 + 15;
-
-      doc.save(`detalhes_cliente_${selectedClient.name.replace(/\s+/g, '_')}.pdf`);
-      alert('Detalhes do cliente gerados em PDF.');
+        doc.roundedRect(
+          margin + numberWidth,
+          maxY,
+          fullWidth,
+          fieldHeight,
+          rectRadius,
+          rectRadius,
+          'FD'
+        );
+        
+        // Texto
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text(textLines, margin + numberWidth + fieldXPadding, maxY + fieldYPadding + 2.5, {
+          lineHeightFactor: 1
+        });
+        
+        maxY += fieldHeight + 6;
+      }
+  
+      // Salvar o PDF
+      const fileName = `cliente_${selectedClient.name.replace(/\s+/g, '_').substring(0, 20)}.pdf`;
+      doc.save(fileName);
     });
   };
-
   const handleDownloadProofPdf = (proof: Proof) => {
     if (!proof) {
       alert('Selecione um comprovante para baixar.');
@@ -388,12 +479,11 @@ const AdminClients: React.FC = () => {
 
     const { proofNumber, status, proofDate, proofHour, services, description, paymentAmount } = proof;
     const numeroComprovante = proofNumber || proof.id.substring(0, 8).toUpperCase();
-    const dataFormatada = proofDate ? new Date(proofDate).toLocaleDateString('pt-BR') : 'Invalid Date';
+    const dataFormatada = proofDate ? new Date(proofDate).toLocaleDateString('pt-BR') : 'Data inválida';
     const horaFormatada = proofHour || '00:00';
     const valorFormatado = parseFloat(paymentAmount || '0').toFixed(2);
-    const servicesList = services ? services.split('\n').map(s => s.trim()).filter(s => s) : [''];
-    const descriptionList = description ? description.split('\n').map(d => d.trim()).filter(d => d) : [''];
-    const numRows = Math.max(servicesList.length, descriptionList.length, 5);
+    const servicesList = services ? services.split('\n').map(s => s.trim()).filter(s => s) : [];
+    const descriptionList = description ? description.split('\n').map(d => d.trim()).filter(d => d) : [];
     const totalAmount = parseFloat(paymentAmount || '0').toFixed(2);
 
     import('jspdf').then((jsPDF) => {
@@ -403,86 +493,157 @@ const AdminClients: React.FC = () => {
         format: 'a4',
       });
 
+      // Configurações de layout
       const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 20;
-      let y = 20;
-      const lineHeight = 7;
+      const margin = 15;
+      let y = 15;
       const headerColor = '#9966cc';
       const textColor = '#333333';
       const inputBackgroundColor = '#f0f0f0';
-      const rectRadius = 2;
-      const tableHeaderHeight = 10;
-      const tableRowHeight = 7;
-      const colWidths = [pageWidth * 0.35, pageWidth * 0.45, pageWidth * 0.2];
+      const circleColor = '#8b51ff';
+      const rectRadius = 3;
+      const numberWidth = 8;
+      const fieldXPadding = 4;
+      const fieldYPadding = 2;
+      const minFieldHeight = 7;
+      const circleRadius = 3.5;
+      const borderWidth = 0.5;
+      const headerBottomMargin = 6; // Novo: Espaço adicional após o cabeçalho
 
-      const roundedRect = (x, y, w, h, r, color) => {
-        doc.setFillColor(color);
-        doc.roundedRect(x, y, w, h, r, r, 'FD');
+      // Função para desenhar número dentro de bolinha
+      const drawNumberInCircle = (x, y, number) => {
+        doc.setDrawColor(headerColor);
+        doc.setFillColor(circleColor);
+        doc.circle(x, y, circleRadius, 'FD');
+        
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor('#ffffff');
+        const textPos = doc.getTextDimensions(number.toString(), { fontSize: 8 });
+        doc.text(number.toString(), x - textPos.w/2, y + textPos.h/3);
+        doc.setTextColor(textColor);
       };
 
-      // Cabeçalho Principal
+      // Função para criar campos
+      const createField = (x, y, label, value, fieldNumber, fieldWidth) => {
+        doc.setFontSize(8);
+        const textLines = doc.splitTextToSize(value || '', fieldWidth - 2*fieldXPadding);
+        const lineHeight = 3.5;
+        const fieldHeight = Math.max(minFieldHeight, (textLines.length * lineHeight) + 2*fieldYPadding);
+        
+        if (fieldNumber <= 4) {
+          drawNumberInCircle(x + circleRadius, y + fieldHeight/2, fieldNumber);
+        }
+        
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, x + numberWidth, y - 1.5);
+        
+        doc.setFillColor(inputBackgroundColor);
+        doc.roundedRect(
+          x + numberWidth,
+          y,
+          fieldWidth,
+          fieldHeight,
+          rectRadius,
+          rectRadius,
+          'FD'
+        );
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(textColor);
+        doc.text(textLines, 
+          x + numberWidth + fieldXPadding, 
+          y + fieldYPadding + 2.5, {
+          lineHeightFactor: 1
+        });
+        
+        return fieldHeight;
+      };
+
+      // Cabeçalho Principal com borda e margem inferior
       doc.setFillColor(headerColor);
-      doc.rect(margin, y, pageWidth - 2 * margin, 10, 'FD');
-      doc.setFontSize(14);
+      doc.setDrawColor('#000000');
+      doc.setLineWidth(borderWidth);
+      doc.roundedRect(
+        margin, 
+        y, 
+        pageWidth - 2 * margin, 
+        9, 
+        2,
+        2, 
+        'FD'
+      );
+      
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor('#ffffff');
-      doc.text('Delvind LTDA', margin + 5, y + 7);
-      doc.setFontSize(12);
-      doc.text('SERVIÇOS PAGOS', pageWidth - margin - 15, y + 7, { align: 'right' });
-      doc.setTextColor(textColor);
-      y += 15;
-
-      // Informações do Comprovante (Linha 1)
-      const infoRow1Y = y + 5;
+      doc.text('Delvind LTDA', margin + 5, y + 6);
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('DATA', margin, infoRow1Y);
-      doc.text('HORA', margin + pageWidth / 2, infoRow1Y);
-      doc.text('COMPROVANTE', margin, infoRow1Y + 10);
-      doc.text('N°', margin + pageWidth / 2, infoRow1Y + 10);
-      doc.setFont('helvetica', 'normal');
-      doc.setFillColor(inputBackgroundColor);
-      roundedRect(margin + 20, infoRow1Y - 2, 40, 8, rectRadius, inputBackgroundColor);
-      doc.text(dataFormatada, margin + 22, infoRow1Y + 4);
-      roundedRect(margin + pageWidth / 2 + 20, infoRow1Y - 2, 25, 8, rectRadius, inputBackgroundColor);
-      doc.text(horaFormatada, margin + pageWidth / 2 + 22, infoRow1Y + 4);
-      roundedRect(margin + 20, infoRow1Y + 8, 80, 8, rectRadius, inputBackgroundColor);
-      doc.text(status ? status.toUpperCase() : '', margin + 22, infoRow1Y + 14);
-      roundedRect(margin + pageWidth / 2 + 20, infoRow1Y + 8, 30, 8, rectRadius, inputBackgroundColor);
-      doc.text(numeroComprovante, margin + pageWidth / 2 + 22, infoRow1Y + 14);
-      y = infoRow1Y + 20;
+      doc.text('SERVIÇOS PAGOS', pageWidth - margin - 10, y + 6, { align: 'right' });
+      
+      // Ajuste: Adicionado espaço após o cabeçalho
+      y += 9 + headerBottomMargin; // Altura do cabeçalho (9mm) + margem inferior (6mm)
+
+      // Campos (1-4)
+      const fieldWidth = (pageWidth - 2*margin - numberWidth - 8) / 2;
+      
+      // Linha 1 (DATA e HORA)
+      const dataHeight = createField(margin, y, 'DATA', dataFormatada, 1, fieldWidth);
+      const horaHeight = createField(margin + numberWidth + fieldWidth + 8, y, 'HORA', horaFormatada, 2, fieldWidth);
+      y += Math.max(dataHeight, horaHeight) + 6;
+
+      // Linha 2 (STATUS e N° COMPROVANTE)
+      const statusHeight = createField(margin, y, 'STATUS', status ? status.toUpperCase() : '', 3, fieldWidth);
+      const comprovanteHeight = createField(margin + numberWidth + fieldWidth + 8, y, 'N° COMPROVANTE', numeroComprovante, 4, fieldWidth);
+      y += Math.max(statusHeight, comprovanteHeight) + 12;
 
       // Tabela de Serviços
-      const startYTable = y + 10;
-      let tableY = startYTable;
+      const colWidths = [pageWidth * 0.35, pageWidth * 0.45, pageWidth * 0.2];
+      const tableHeaderHeight = 7;
+      const tableRowHeight = 6;
 
       // Cabeçalho da Tabela
       doc.setFont('helvetica', 'bold');
-      doc.rect(margin, tableY, pageWidth - 2 * margin, tableHeaderHeight);
-      doc.text('Serviços', margin + 2, tableY + 6);
-      doc.text('Descrição', margin + colWidths[0] + 2, tableY + 6);
-      doc.text('Valor R$', margin + colWidths[0] + colWidths[1] + 2, tableY + 6, { align: 'right' });
-      tableY += tableHeaderHeight;
-      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.rect(margin + numberWidth, y, pageWidth - 2*margin - numberWidth, tableHeaderHeight, 'D');
+      doc.text('SERVIÇOS', margin + numberWidth + 4, y + 4.5);
+      doc.text('DESCRIÇÃO', margin + numberWidth + colWidths[0] + 4, y + 4.5);
+      doc.text('VALOR R$', pageWidth - margin - 4, y + 4.5, { align: 'right' });
+      y += tableHeaderHeight;
 
       // Linhas da Tabela
-      for (let i = 0; i < numRows; i++) {
-        doc.rect(margin, tableY, pageWidth - 2 * margin, tableRowHeight);
-        doc.text(servicesList[i] || '', margin + 2, tableY + 4);
-        doc.text(descriptionList[i] || '', margin + colWidths[0] + 2, tableY + 4);
-        doc.text(i < servicesList.length ? `R$ ${parseFloat(paymentAmount || '0').toFixed(2)}` : '', margin + colWidths[0] + colWidths[1] + 2, tableY + 4, { align: 'right' });
-        tableY += tableRowHeight;
+      doc.setFont('helvetica', 'normal');
+      const itemsCount = Math.max(servicesList.length, descriptionList.length);
+      
+      for (let i = 0; i < itemsCount; i++) {
+        doc.rect(margin + numberWidth, y, pageWidth - 2*margin - numberWidth, tableRowHeight, 'D');
+        
+        if (i < servicesList.length) {
+          doc.text(servicesList[i], margin + numberWidth + 4, y + 3.5);
+        }
+        
+        if (i < descriptionList.length) {
+          doc.text(descriptionList[i], margin + numberWidth + colWidths[0] + 4, y + 3.5);
+        }
+        
+        if (i === 0) {
+          doc.text(`R$ ${valorFormatado}`, pageWidth - margin - 4, y + 3.5, { align: 'right' });
+        }
+        
+        y += tableRowHeight;
       }
 
       // Total
       doc.setFont('helvetica', 'bold');
-      doc.rect(margin, tableY, pageWidth - 2 * margin, tableRowHeight);
-      doc.text('Total', margin + 2, tableY + 4);
-      doc.text(`R$ ${totalAmount}`, pageWidth - margin - 2, tableY + 4, { align: 'right' });
+      doc.setFontSize(8);
+      doc.rect(margin + numberWidth, y, pageWidth - 2*margin - numberWidth, tableRowHeight, 'D');
+      doc.text('TOTAL', margin + numberWidth + 4, y + 3.5);
+      doc.text(`R$ ${totalAmount}`, pageWidth - margin - 4, y + 3.5, { align: 'right' });
 
       // Download do PDF
       doc.save(`comprovante_${numeroComprovante}.pdf`);
-      alert('Comprovante gerado em PDF.');
     });
   };
 
