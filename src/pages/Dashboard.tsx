@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link} from 'react-router-dom';
-import { Plus, FileText, Eye, Download, Pencil, Send, Trash, Menu } from 'lucide-react';
+import { Plus, FileText, Eye, Download, Pencil, Send, Trash, Menu, Check } from 'lucide-react';
 import Layout from '../components/Layout';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
@@ -495,10 +495,18 @@ const Dashboard: React.FC = () => {
                         Enviar
                       </button>
                     )}
+                    {report.status === 'Production' && (
                     <button onClick={() => handleDelete(report._id)} className="btn-danger flex items-center">
                       <Trash size={18} className="mr-1" />
                       Excluir
                     </button>
+                     )}
+                    {report.status === 'Sended' && (
+                      <div className="flex items-center text-green-600 font-semibold">
+                        <Check size={18} className="mr-1" />
+                        Enviado
+                      </div>
+                     )}
                   </div>
                 </div>
 
@@ -534,10 +542,18 @@ const Dashboard: React.FC = () => {
                         Enviar
                       </button>
                     )}
+                    {report.status === 'Production' && (
                     <button onClick={() => handleDelete(report._id)} className="btn-danger flex items-center">
                       <Trash size={18} className="mr-1" />
                       Excluir
                     </button>
+                    )}
+                    {report.status === 'Sended' && (
+                      <div className="flex items-center text-green-600 font-semibold">
+                        <Check size={18} className="mr-1" />
+                        Enviado
+                      </div>
+                     )}
                   </div>
                 )}
 
